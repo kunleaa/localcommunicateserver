@@ -1,0 +1,1760 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0054)http://blog.chinaunix.net/uid-23069658-id-3273673.html -->
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" async="" src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/ga.js"></script><script>
+var ua = navigator.userAgent.toLowerCase();
+if(ua.match(/MicroMessenger/i)=="micromessenger") {
+    location.href='http://blog.chinaunix.net/article.php?url='+ window.location.href;
+}
+</script>
+        <style>
+    .Blog_nav1_2 a em { display:inline-block; width:16px; height:13px; background:url(/image/v.jpg) no-repeat; overflow:hidden;}
+</style>
+
+<link rel="stylesheet" type="text/css" href="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/style.css">
+<link rel="stylesheet" type="text/css" href="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/qqFace.css">
+<link rel="stylesheet" type="text/css" href="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/asyncbox.css">
+<link rel="stylesheet" type="text/css" href="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/pager.css">
+<script type="text/javascript" src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/jquery.min.js"></script>
+<script type="text/javascript" src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/jquery.cookies.min.js"></script>
+<script type="text/javascript" src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/AsyncBox.v1.4.5.js"></script>
+<title>Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客</title>
+<meta name="description" content="面向连接的TCP程序设计
+
+       基于TCP的程序开发分为服务器端和客户端两部分，常见的核心步骤和流程：       其实按照上面这个流程调用系统A">
+<script type="text/javascript" src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/h600.js"></script><script type="text/javascript" src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/h600(1).js"></script>
+
+<script type="text/javascript">
+if(/AppleWebKit.*Mobile/i.test(navigator.userAgent) || (/MIDP|SymbianOS|NOKIA|SAMSUNG|LG|NEC|TCL|Alcatel|BIRD|DBTEL|Dopod|PHILIPS|HAIER|LENOVO|MOT-|Nokia|SonyEricsson|SIE-|Amoi|ZTE/.test(navigator.userAgent))){
+	try{
+		if(!/iPad/i.test(navigator.userAgent)){
+			var oldurl=window.location.href;
+			var wapUrl= oldurl.replace('blog.chinaunix.net', "m.blog.chinaunix.net") ;
+			window.location.href = wapUrl;
+		}
+	}catch(e){}
+}
+</script>
+
+
+<script language="javascript">
+//用户是否在线
+var isOnLine = '';
+$(document).ready(function(){
+	var blog = {'name': '', 'name_url': '', 'brief': ''};
+	//消息通知显示和隐藏控制
+	$('#show_message_slide_button').hover(
+		function(){
+			$('#message_slide_div').slideDown(100);											   
+		},
+		function(){
+			
+		}
+	);
+
+	$('#message_slide_div').hover(
+		function(){
+			
+		},
+		function(){
+			$('#message_slide_div').slideUp(100);
+		}
+	);
+	
+	//编辑博客名
+	$('#editbna').click(function(){
+		blog.name = $('#bnaspan a').text();
+		var val = '<input id="bnainput" type="text" style="float:left" value="" rel="' +$(this).attr('rel') + '" /><input id="bnasub" type="button" style="float:left" class="btn1"><input id="bnacanl" type="button" style="float:left" class="btn2"><div class="clear"></div>';
+		$('#bnaspan').html(val);
+		$('#bnainput').val(blog.name);
+		$(this).parent().hide();
+	});
+	
+	$('#bnasub').live('click', function(){
+	    var rel = eval('({' + $('#bnainput').attr('rel') + '})');
+		var name = $('#bnainput').val();
+		if(name != blog.name){
+	        $.ajax({
+			    type: "POST",
+			    url: rel.url,	
+			    data: {
+				    'name' : name
+			    },
+			    success:function(data){
+				    if(data == 0){
+						$('#bnaspan').html(blog.name);
+						$('#bnaspan').html('<a href="' + rel.href + '">' + $('#bnaspan').html() + '</a>');
+				    }else{
+						$('#bnaspan').html(data);
+						$('#bnaspan').html('<a href="' + rel.href + '">' + $('#bnaspan').html() + '</a>');
+				    }
+					$('#editbna').parent().show();
+				}
+			});
+		}else{
+		    $('#bnaspan').text(blog.name).html();
+			$('#bnaspan').html('<a href="' + rel.href + '">' + $('#bnaspan').html() + '</a>');
+			$('#editbna').parent().show();
+		}
+	});
+	
+	$('#bnacanl').live('click', function(){
+		var rel = eval('({' + $('#bnainput').attr('rel') + '})');
+		$('#bnaspan').html('<a href="' + rel.href + '">' + blog.name + '</a>');
+		$('#editbna').parent().show();
+	});
+	
+	//编辑签名
+	$('#editbrief').click(function(){
+	    blog.brief = $('#briefem').text();
+		var val = '<input id="brfinput" type="text" style="float:left" value="" rel="' + $(this).attr('rel') + '" /><input id="brfsub" style="float:left"  type="button" class="btn1"><input style="float:left"  id="brfcanl" type="button" class="btn2"><div class="clear"></div>';
+		$('#briefem').html(val);
+		$('#brfinput').val(blog.brief);
+		$(this).parent().hide();
+	});
+	
+	$('#brfsub').live('click', function(){
+	    var url = $('#brfinput').attr('rel');
+		var brief = $('#brfinput').val();
+		if(brief != blog.brief){
+	        $.ajax({
+			    type: "POST",
+			    url: url,	
+			    data: {
+				    'brief' : brief
+			    },
+			    success:function(data){
+				    if(data == 0){
+				        $('#briefem').html(blog.brief);
+				    }else{
+						$('#briefem').html(data);
+				    }
+					$('#editbrief').parent().show();
+				}
+			});
+		}else{
+		    $('#briefem').text(blog.brief).html();
+			$('#editbrief').parent().show();
+		}
+	});
+	
+	$('#brfcanl').live('click', function(){
+		$('#briefem').html(blog.brief);
+		$('#editbrief').parent().show();
+	});
+
+});
+</script>
+<script src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/share.js"></script><link rel="stylesheet" href="http://bdimg.share.baidu.com/static/api/css/share_style0_16.css?v=8105b07e.css"></head>
+<body><div id="BAIDU_DUP_fp_wrapper" style="position: absolute; left: -1px; bottom: -1px; z-index: 0; width: 0px; height: 0px; overflow: hidden; visibility: hidden; display: none;"><iframe id="BAIDU_DUP_fp_iframe" src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/o.html" style="width: 0px; height: 0px; visibility: hidden; display: none;"></iframe></div>
+<div class="box">
+  <!-- 一级导航 -->
+  <div class="Blog_nav1">
+    <div class="Blog_nav1_2"><a href="http://blog.chinaunix.net/"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/1.png"></a><a href="http://www.chinaunix.net/" class="Blog_a1">Chinaunix首页</a> | <a href="http://bbs.chinaunix.net/" target="_blank">论坛</a> | <a href="http://u.it168.com/vip/"><font color="red">认证专区</font></a> | <a href="http://blog.chinaunix.net/" target="_blank">博客</a><span class="Blog_span1"></span>
+              <a href="http://blog.chinaunix.net/site/login.html" class="Blog_a1" onclick="linkto()">登录</a> | <a href="http://u.it168.com/Register?webid=5&returnUrl=http%3A%2F%2Fblog.chinaunix.net%2Fuid-23069658-id-3273673.html" class="Blog_a1">注册</a>
+          </div>
+	<!--自动提示层-->
+	<style>
+	.bor13221{border:1px #bbb solid;width:206px;position:absolute;top:34px;left:0;background:#fff; z-index:9999;display:none}
+	.bor13221 li{height:26px;line-height:26px;padding-left:6px;color:#555;font-size:14px;cursor:pointer;}
+	.here{background:#f3f3f3;}
+    </style>
+
+	<!--自动提示层-->
+    <div class="Blog_nav1_3" style="position:relative; z-index:9999;">
+	 <div class="bor13221" style="display: none;">
+      <ul>
+      </ul>
+    </div>
+	  <form action="http://blog.chinaunix.net/site/search.html" method="post">
+		<input type="text" autocomplete="off" class="Blog_txt1" id="search_input_id" name="keywords">
+		<select class="Bolg_sel1" name="type" id="search_type_blog">
+		  <option value="blog">博文</option>
+		  <option value="author">博主</option>
+		</select>
+		<input type="submit" value="" name="submit" class="Blog_btn1">
+	 </form>
+    </div>
+    <div class="clear"></div>
+    <div class="Blog_nav1_layer1" id="message_slide_div" style="display:none;">
+	    <ul>
+	    	<li><a href="http://blog.chinaunix.net/message/private.html">私人消息()</a></li>
+	    	<li><a href="http://blog.chinaunix.net/message/system.html">系统消息()</a></li>
+	    	<li><a href="http://blog.chinaunix.net/member/request.html">好友请求()</a></li>
+	    	<li><a href="http://blog.chinaunix.net/member/notification.html">通知管理()</a></li>
+	    </ul>
+    </div>
+  </div>
+   <script type="text/javascript">
+  	$(function(){
+		//点击添加进文本框
+		$(".bor13221 li").live( 'click' , function(e){
+			if ( e && e.stopPropagation )
+			{
+				//因此它支持W3C的stopPropagation()方法
+				e.stopPropagation();
+			}
+			else
+			{
+				//否则，我们需要使用IE的方式来取消事件冒泡
+				window.event.cancelBubble = true; 
+			}
+			$('#search_input_id').val($(this).text());
+			$(".bor13221 ul").html('');
+			$(".bor13221").hide();
+		});
+		$(".bor13221 ul li").live({
+			mouseenter:
+			function()
+			{
+				$(".bor13221 ul li").removeClass("here");
+				$(this).addClass('here');
+			},
+			mouseleave:
+			function()
+			{
+				$(".bor13221 ul li").removeClass("here");
+				$(this).removeClass('here');
+			}
+		});
+		//自动提示
+		$('#search_input_id').keyup(function(event){
+			//取消博主的提示
+			var search_type_blog = $('#search_type_blog').val();
+			if(search_type_blog == 'author') return false;
+
+			var key = $(this).val();
+			//获取键值
+			var keycode = event.which; //38 上 40 下
+			var count = $('.bor13221 ul li').length;
+			if(key != '' && keycode != 38 && keycode != 40)
+			{
+				$.getJSON("http://api.sou.it168.com/autoWenKuCloud?jsoncallback=?",{"ty":"json","offset":"0","limit":"10","q":key}, function(result)
+					{
+						var arr = result.data;
+
+						var html ='';
+						for (i=0;i<arr.length ;i++ )   
+						{   
+							html += '<li>'+arr[i]+'</li>';
+						} 
+						
+						$('.bor13221 ul').html(html);
+						(arr.length > 1) ?  $(".bor13221").show() : $(".bor13221").hide();
+					}
+				);
+			}
+			else if(keycode == 38)
+			{
+				if(count > 0)
+				{
+					//遍历li
+					var curr_li_num;
+					$('.bor13221 ul li').each(function(index , dom){
+						if($(dom).attr('class') == 'here')
+						{
+							curr_li_num = index;
+							return false;
+						}
+					}); 
+					var next_li_num;
+					if(typeof(curr_li_num) == 'undefined')
+					{
+						next_li_num = count - 1;
+					}
+					else
+					{
+						if(curr_li_num == 0)
+						{
+							next_li_num = count - 1;
+						}
+						else
+						{
+							next_li_num = curr_li_num - 1;
+						}
+					}
+					$(".bor13221 ul li").removeClass("here");
+					$(".bor13221 ul li:eq(" + next_li_num + ")").addClass("here");
+					$('#search_input_id').val($(".bor13221 ul li:eq(" + next_li_num + ")").text());
+				}
+			}
+			else if(keycode == 40)
+			{
+				if(count > 0)
+				{
+					//遍历li
+					var curr_li_num;
+					$('.bor13221 ul li').each(function(index , dom){
+						if($(dom).attr('class') == 'here')
+						{
+							curr_li_num = index;
+							return false;
+						}
+					}); 
+					var next_li_num;
+					if(typeof(curr_li_num) == 'undefined')
+					{
+						next_li_num = 0;
+					}
+					else
+					{
+						if(curr_li_num == count - 1)
+						{
+							next_li_num = 0;
+						}
+						else
+						{
+							next_li_num = curr_li_num + 1;
+						}
+					}
+					$(".bor13221 ul li").removeClass("here");
+					$(".bor13221 ul li:eq(" + next_li_num + ")").addClass("here");
+					$('#search_input_id').val($(".bor13221 ul li:eq(" + next_li_num + ")").text());
+				}
+			}
+		});
+		$(document).click(function(e){
+			$(".bor13221").hide();
+		});
+
+	});
+  </script>
+  <!-- 头 -->
+  <!-- 推荐博客-->
+  <div class="Blog_header1">
+	<div class="img1"></div>    <div class="Blog_header1_1">
+      <p class="Blog_p1"><em><a href="http://blog.chinaunix.net/uid/23069658.html">wjlkoorey的博客</a></em><a href="http://wjlkoorey.blog.chinaunix.net/">wjlkoorey.blog.chinaunix.net</a></p>      <p class="Blog_p2" style="color:#125A94">wanderlust in the sea...</p>
+    </div>
+        <div class="Blog_header1_2" id="hide_div1">
+    	<span class="Blog_span3"></span>
+    	<div class="float_div1" style="white-space:nowrap;" onmouseover="javascript:isMove=false" onmouseout="javascript:isMove=true">
+	    <ul id="noticev2" style="line-height: 25px; margin-top: -25px;">  
+		    		    <li><a href="http://blog.chinaunix.net/uid-10718265-id-5141960.html" target="_blank"> 互动：数据分析与云计算应用案例 （征集|参与）</a></li>
+		    		    <li><a href="http://bbs.chinaunix.net/thread-4182662-1-1.html" target="_blank">有奖讨论：企业网络架构的世界真有“试衣间”</a></li>
+		    		    <li><a href="http://bbs.chinaunix.net/thread-4181131-1-1.html" target="_blank">有奖征文：技术自白书之中国架构师 前8有奖！</a></li>
+		    	    </ul>
+	    </div>
+    </div>
+            <div class="Blog_header1_3"><a href="http://blog.chinaunix.net/uid/23069658.html">首页</a>　| 　<a href="http://blog.chinaunix.net/uid/23069658/abstract/1.html">博文目录</a>　| 　<a href="http://blog.chinaunix.net/member/profile/uid/23069658.html">关于我</a></div>
+  </div>
+    
+  <!-- 内容部分 -->
+  	<script type="text/javascript" src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/XRegExp.js"></script> <!-- XRegExp is bundled with the final shCore.js during build -->
+<script type="text/javascript" src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/shCore.js"></script>
+<script type="text/javascript" src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/shAutoloader.js"></script>
+<link type="text/css" rel="stylesheet" href="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/shCore.css">
+<link type="text/css" rel="Stylesheet" href="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/shThemeDefault.css">
+<link href="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/fck_editorarea.css" rel="stylesheet" type="text/css">
+<style>
+.Blog_p5 em{ display:inline-block; width:16px; height:13px; background:url(/image/v.jpg) no-repeat; overflow:hidden;}
+</style>
+  <div class="Blog_contain"> 
+    <!-- 左 -->
+	<style>
+    .Blog_left1_1 p a em { display:inline-block; width:16px; height:13px; background:url(/image/v.jpg) no-repeat; overflow:hidden;}
+</style>
+
+<script language="javascript">
+$(document).ready(function(){
+	$('#ConcernBtn').bind('click',function(){
+			var cuid = '23069658';
+			var url =  '/member/concern.html';
+			var type = $(this).attr('rel');
+		
+			if(type == 'addConcern'){
+				$.ajax({
+					type : 'get',
+					url  : url,
+					data : {'op' : 'ajaxadd' , 'cuid' : cuid, 'random' : Math.random()},
+					success : function(msg){	
+					   if(msg == -1){
+						   showErrorMsg('参数错误！');
+					   } else if (msg == 0){
+						   showErrorMsg('关注失败，没有该用户！');
+					   } else if (msg == 1){
+						   showErrorMsg('关注失败，您已经关注了该用户！');
+					   } else if (msg == 2){
+						   $('#ConcernBtn').val('已关注');
+						   $('#ConcernBtn').attr('rel','delConcern');
+						   showSucceedMsg('关注成功!');
+					   } else if (msg == 3){
+						   showErrorMsg('未知错误');
+					   }
+					}
+				});	
+			} else if ( type == 'delConcern'){
+				$.ajax({
+					type : 'get',
+					url  : url,
+					data : {'op' : 'ajaxdel' , 'cuid' : cuid, 'random' : Math.random()},
+					success : function(msg){
+					   if(msg == 0){
+						   showErrorMsg('参数错误！','消息提示');
+					   } else if (msg == 1){
+						   showErrorMsg('操作失败，请尝试刷新页面重试！','消息提示');
+					   } else if (msg == 2){
+						   $('#ConcernBtn').val('加关注');
+						   $('#ConcernBtn').attr('rel','addConcern');
+						   showSucceedMsg('成功取消关注！','消息提示');
+					   } else if (msg == 3){
+						   showErrorMsg('未知错误！','消息提示'); 
+					   }
+					}
+				});	
+			}
+	});					   
+});
+
+//加好友
+function addFriend(fuid, url){
+	if(fuid == '' || fuid.length == 0){
+		showErrorMsg('缺少参数！','信息提示');
+		return false;
+	}
+	$.ajax({
+		   type : 'get',
+		   url : url,
+		   data : {'op' : 'add', 'fuid' : fuid , 'random' : Math.random()},
+		   success : function(msg){
+				if(msg == -1){
+					showErrorMsg('参数错误！','消息提示');
+				} else if (msg == -2){
+					showErrorMsg('添加好友失败,没有该用户的信息！','消息提示');
+				} else if (msg == -3){
+					showErrorMsg('添加好友失败,你不能添加自己为好友！','消息提示');
+				} else if (msg == -4){
+					showErrorMsg('添加好友未知错误,该错误已被记录！','消息提示');
+				} else if (msg == -5){
+					showErrorMsg('添加好友失败,你之前已经发送过好友请求,请耐心等待对方同意申请！','消息提示');
+				} else if (msg == -6){
+					showErrorMsg('添加好友失败,你们已经是好友了！','消息提示');
+				} else {
+					$.cover(true);
+					asyncbox.open({
+						id : 'addFriend',
+						title : '添加好友',
+						url : url,
+						data : {'op' : 'add', 'fuid' : fuid , 'random' : Math.random()},
+						width : 490,
+						height : 180,
+						scroll : 'no',
+						callback : function(action) {
+							if (action == 'close'){
+								$.cover(false);
+							}	
+						}
+					});	
+				}
+		   }
+	});	
+	
+}
+
+//发送短消息
+function postMessage(msguid, url){
+	if(msguid == '' || msguid.length == 0){
+		showErrorMsg('缺少参数！','信息提示');
+		return false;
+	}
+	
+	$.ajax({
+		   type : 'post',
+		   url : url,
+		   data : {'op' : 'ajaxpost', 'msguid' : msguid , 'random' : Math.random()},
+		   success : function(msg){
+				if(msg == -1){
+					showErrorMsg('发送失败，缺少收件人对象！','消息提示');
+				} else if(msg == -2){
+					showErrorMsg('发送失败，自己不能给自己发送短消息！','消息提示');
+				} else {
+					$.cover(true);
+					asyncbox.open({
+						id : 'postMessage',
+						title : '发送短消息',
+						url : url,
+						data : {'op' : 'ajaxpost', 'msguid' : msguid , 'random' : Math.random()},
+						width : 510,
+						height : 255,
+						scroll : 'no',
+						callback : function(action) {
+							if (action == 'close'){
+								$.cover(false);
+							}	
+						}
+					});	
+				}
+		   }
+	});	
+}
+
+</script>
+<div class="Blog_left">
+      <div class="Blog_left1 Blog_bg1">
+        <div class="Blog_left1_1">
+			<div class="img"></div><!-- 专家博客-->
+			<a href="http://blog.chinaunix.net/uid/23069658.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/58_avatar_middle.jpg" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_middle.gif&#39;"></a>
+                        <p><a href="http://blog.chinaunix.net/uid/23069658.html">wjlkoorey258</a></p>
+                     </div>
+        <ul class="Blog_ul1 Blog_noline1">
+          <li>博客访问： 1367836 </li>
+          <li>博文数量： 101 </li>
+          <li>博客积分： 671 </li>
+          <!--<li>专家积分： 180</li>-->
+          <li>博客等级： 上尉 </li>
+		  <li>技术积分： 17365 </li>
+          <li>用  户  组：  普通用户</li>
+          <li>注册时间： 2010-12-18 16:08 </li>
+                            </ul>  
+
+
+        
+                <div class="HT_line3 HT_line3_1"></div>
+        <ul class="Blog_ul2">
+          <li><input type="button" value="加关注" id="ConcernBtn" onclick="showErrorMsg(&#39;操作失败,您需要先登录!&#39;, &#39;消息提示&#39;, &#39;/site/login.html&#39;)"></li>
+          <li><input type="button" value="短消息" id="postMessageBtn" onclick="showErrorMsg(&#39;操作失败,您需要先登录!&#39;, &#39;消息提示&#39;, &#39;/site/login.html&#39;)"></li>
+          <li><input type="button" value="论坛" onclick="location.href=&#39;http://bbs.chinaunix.net&#39;"></li>
+          <li><input type="button" value="加好友" id="addFriendBtn" onclick="showErrorMsg(&#39;操作失败,您需要先登录!&#39;, &#39;消息提示&#39;, &#39;/site/login.html&#39;)"></li>
+        </ul>
+              </div>
+            <div class="Blog_left2 Blog_bg1">
+        <div class="Blog_tit1">个人简介</div>
+        <p class="Blog_p3">www.5678520.com</p>
+      </div>
+        
+         
+      <div class="Blog_left2 Blog_bg1">
+        <div class="Blog_tit1">文章分类</div>
+        <div class="Blog_left2_1">
+          <p class="Blog_p4"><a href="http://blog.chinaunix.net/uid/23069658/list/1.html">全部博文</a>（101）</p>
+          <ul id="blogCla">
+                            <li><a href="http://blog.chinaunix.net/uid/23069658/cid-204287-list-1.html" title="内核学习">内核学习</a>（4）
+                                </li>
+                            <li><a href="http://blog.chinaunix.net/uid/23069658/cid-197637-list-1.html" title="Netfilter&amp;ebtables">Netfilter&amp;ebtabl</a>（0）
+                                </li>
+                            <li><a href="http://blog.chinaunix.net/uid/23069658/cid-175255-list-1.html" title="算法设计">算法设计</a>（8）
+                                </li>
+                            <li><a href="http://blog.chinaunix.net/uid/23069658/cid-174961-list-1.html" title="计算机系统">计算机系统</a>（11）
+                                </li>
+                            <li><a href="http://blog.chinaunix.net/uid/23069658/cid-169070-list-1.html" title="商海ABC">商海ABC</a>（1）
+                                </li>
+                            <li><a href="http://blog.chinaunix.net/uid/23069658/cid-168503-list-1.html" title="存储">存储</a>（6）
+                                </li>
+                            <li><a href="http://blog.chinaunix.net/uid/23069658/cid-167154-list-1.html" title="翻译">翻译</a>（3）
+                                </li>
+                            <li><a href="http://blog.chinaunix.net/uid/23069658/cid-165576-list-1.html" title="Java">Java</a>（1）
+                                </li>
+                            <li><a href="http://blog.chinaunix.net/uid/23069658/cid-165240-list-1.html" title="内核源码">内核源码</a>（6）
+                                </li>
+                            <li><a href="http://blog.chinaunix.net/uid/23069658/cid-164796-list-1.html" title="其他">其他</a>（3）
+                                </li>
+                            <li><span class="Blog_jia1"></span><a href="http://blog.chinaunix.net/uid/23069658/cid-164793-list-1.html" title="多媒体">多媒体</a>（7）
+                                    <div style="display:none;" class="zk">
+					                        <p><a href="http://blog.chinaunix.net/uid/23069658/sid-164795-list-1.html" title="语音">语音</a>（2）</p>
+                                            <p><a href="http://blog.chinaunix.net/uid/23069658/sid-164794-list-1.html" title="图形图像">图形图像</a>（3）</p>
+                                        </div>
+                                </li>
+                            <li><a href="http://blog.chinaunix.net/uid/23069658/cid-164792-list-1.html" title="网络编程">网络编程</a>（8）
+                                </li>
+                            <li><a href="http://blog.chinaunix.net/uid/23069658/cid-164791-list-1.html" title="系统管理">系统管理</a>（3）
+                                </li>
+                            <li><a href="http://blog.chinaunix.net/uid/23069658/cid-164790-list-1.html" title="SNMP">SNMP</a>（2）
+                                </li>
+                            <li><a href="http://blog.chinaunix.net/uid/23069658/cid-164789-list-1.html" title="Netfilter和iptables">Netfilter和iptab</a>（0）
+                                </li>
+                            <li><a href="http://blog.chinaunix.net/uid/23069658/cid--1-list-1.html" title="未分配的博文">未分配的博文</a>（38）
+                                </li>
+                      </ul>
+        </div>
+      </div>
+      	              <div class="Blog_left2 Blog_bg1">
+        <div class="Blog_tit1">文章存档</div>
+        <div class="Blog_left2_1" id="blogdtr">
+                    <p class="Blog_p4"><span class="Blog_jia1"></span><a href="http://blog.chinaunix.net/uid/23069658/year-2015-list-1.html">2015年</a>（3）</p>
+          <ul style="display:none;" class="Blog_ul3 zk">
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201505-list-1.html">2015年05月</a>（1）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201504-list-1.html">2015年04月</a>（1）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201501-list-1.html">2015年01月</a>（1）</li>
+                      </ul>
+                    <p class="Blog_p4"><span class="Blog_jia1"></span><a href="http://blog.chinaunix.net/uid/23069658/year-2014-list-1.html">2014年</a>（14）</p>
+          <ul style="display:none;" class="Blog_ul3 zk">
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201412-list-1.html">2014年12月</a>（1）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201410-list-1.html">2014年10月</a>（1）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201407-list-1.html">2014年07月</a>（3）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201406-list-1.html">2014年06月</a>（1）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201405-list-1.html">2014年05月</a>（1）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201404-list-1.html">2014年04月</a>（4）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201402-list-1.html">2014年02月</a>（1）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201401-list-1.html">2014年01月</a>（2）</li>
+                      </ul>
+                    <p class="Blog_p4"><span class="Blog_jia1"></span><a href="http://blog.chinaunix.net/uid/23069658/year-2013-list-1.html">2013年</a>（21）</p>
+          <ul style="display:none;" class="Blog_ul3 zk">
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201312-list-1.html">2013年12月</a>（3）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201311-list-1.html">2013年11月</a>（3）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201310-list-1.html">2013年10月</a>（3）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201306-list-1.html">2013年06月</a>（3）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201305-list-1.html">2013年05月</a>（1）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201304-list-1.html">2013年04月</a>（4）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201303-list-1.html">2013年03月</a>（1）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201302-list-1.html">2013年02月</a>（1）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201301-list-1.html">2013年01月</a>（2）</li>
+                      </ul>
+                    <p class="Blog_p4"><span class="Blog_jia1"></span><a href="http://blog.chinaunix.net/uid/23069658/year-2012-list-1.html">2012年</a>（63）</p>
+          <ul style="display:none;" class="Blog_ul3 zk">
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201212-list-1.html">2012年12月</a>（2）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201211-list-1.html">2012年11月</a>（4）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201210-list-1.html">2012年10月</a>（4）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201209-list-1.html">2012年09月</a>（4）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201208-list-1.html">2012年08月</a>（2）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201207-list-1.html">2012年07月</a>（6）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201206-list-1.html">2012年06月</a>（4）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201205-list-1.html">2012年05月</a>（6）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201204-list-1.html">2012年04月</a>（8）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201203-list-1.html">2012年03月</a>（21）</li>
+                        <li><a href="http://blog.chinaunix.net/uid/23069658/year-201201-list-1.html">2012年01月</a>（2）</li>
+                      </ul>
+                  </div>
+      </div>
+      	  	        <div class="Blog_left2 Blog_bg1">
+        <div class="Blog_tit1">我的朋友</div>
+        <ul class="Blog_ul4">
+                    <li><a href="http://blog.chinaunix.net/uid/24683784.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/84_avatar_small.jpg" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_small.gif&#39;"></a>
+            <p><a href="http://blog.chinaunix.net/uid/24683784.html" title="zhanglin496">zhanglin</a></p>
+          </li>
+                    <li><a href="http://blog.chinaunix.net/uid/18841117.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/17_avatar_small.jpg" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_small.gif&#39;"></a>
+            <p><a href="http://blog.chinaunix.net/uid/18841117.html" title="brucexia">brucexia</a></p>
+          </li>
+                    <li><a href="http://blog.chinaunix.net/uid/30503846.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/noavatar_small.gif" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_small.gif&#39;"></a>
+            <p><a href="http://blog.chinaunix.net/uid/30503846.html" title="longqinghong">longqing</a></p>
+          </li>
+                    <li><a href="http://blog.chinaunix.net/uid/12836180.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/noavatar_small.gif" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_small.gif&#39;"></a>
+            <p><a href="http://blog.chinaunix.net/uid/12836180.html" title="ydf1937">ydf1937</a></p>
+          </li>
+                    <li><a href="http://blog.chinaunix.net/uid/29955690.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/90_avatar_small.jpg" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_small.gif&#39;"></a>
+            <p><a href="http://blog.chinaunix.net/uid/29955690.html" title="小峰子x">小峰子x</a></p>
+          </li>
+                    <li><a href="http://blog.chinaunix.net/uid/30494308.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/noavatar_small.gif" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_small.gif&#39;"></a>
+            <p><a href="http://blog.chinaunix.net/uid/30494308.html" title="1994swallow">1994swal</a></p>
+          </li>
+                    <li><a href="http://blog.chinaunix.net/uid/29459599.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/noavatar_small.gif" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_small.gif&#39;"></a>
+            <p><a href="http://blog.chinaunix.net/uid/29459599.html" title="mingguo001">mingguo0</a></p>
+          </li>
+                    <li><a href="http://blog.chinaunix.net/uid/30485742.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/noavatar_small.gif" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_small.gif&#39;"></a>
+            <p><a href="http://blog.chinaunix.net/uid/30485742.html" title="InvictusSean">Invictus</a></p>
+          </li>
+                    <li><a href="http://blog.chinaunix.net/uid/30412026.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/noavatar_small.gif" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_small.gif&#39;"></a>
+            <p><a href="http://blog.chinaunix.net/uid/30412026.html" title="心晴2015">心晴2015</a></p>
+          </li>
+                  </ul>
+      </div>
+	  	        <div class="Blog_left2 Blog_bg1">
+        <div class="Blog_tit1">最近访客</div>
+        <ul class="Blog_ul4">
+                    <li><a href="http://blog.chinaunix.net/uid/30360202.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/02_avatar_small.jpg" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_small.gif&#39;"></a>
+            <p><a href="http://blog.chinaunix.net/uid/30360202.html" title="Joker_ora">Joker_or</a></p>
+          </li>
+                    <li><a href="http://blog.chinaunix.net/uid/30528568.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/noavatar_small.gif" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_small.gif&#39;"></a>
+            <p><a href="http://blog.chinaunix.net/uid/30528568.html" title="1025150913">10251509</a></p>
+          </li>
+                    <li><a href="http://blog.chinaunix.net/uid/30547181.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/noavatar_small.gif" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_small.gif&#39;"></a>
+            <p><a href="http://blog.chinaunix.net/uid/30547181.html" title="xu249794">xu249794</a></p>
+          </li>
+                    <li><a href="http://blog.chinaunix.net/uid/7869246.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/46_avatar_small.jpg" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_small.gif&#39;"></a>
+            <p><a href="http://blog.chinaunix.net/uid/7869246.html" title="liexusong">liexuson</a></p>
+          </li>
+                    <li><a href="http://blog.chinaunix.net/uid/29191363.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/63_avatar_small.jpg" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_small.gif&#39;"></a>
+            <p><a href="http://blog.chinaunix.net/uid/29191363.html" title="ShadowSrX">ShadowSr</a></p>
+          </li>
+                    <li><a href="http://blog.chinaunix.net/uid/30545330.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/noavatar_small.gif" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_small.gif&#39;"></a>
+            <p><a href="http://blog.chinaunix.net/uid/30545330.html" title="honglongwei">honglong</a></p>
+          </li>
+                    <li><a href="http://blog.chinaunix.net/uid/30481346.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/noavatar_small.gif" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_small.gif&#39;"></a>
+            <p><a href="http://blog.chinaunix.net/uid/30481346.html" title="hnyzlst">hnyzlst</a></p>
+          </li>
+                    <li><a href="http://blog.chinaunix.net/uid/7344519.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/noavatar_small.gif" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_small.gif&#39;"></a>
+            <p><a href="http://blog.chinaunix.net/uid/7344519.html" title="HELUN">HELUN</a></p>
+          </li>
+                    <li><a href="http://blog.chinaunix.net/uid/30545980.html"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/noavatar_small.gif" onerror="this.onerror=null;this.src=&#39;http://passport.ixpub.net/images/noavatar_small.gif&#39;"></a>
+            <p><a href="http://blog.chinaunix.net/uid/30545980.html" title="jiayou_lm">jiayou_l</a></p>
+          </li>
+                  </ul>
+      </div>
+	           <div class="Blog_left2 Blog_left3 Blog_bg1">
+        <div class="Blog_tit1">微信关注</div>
+        <div class="">
+                <div class="" style="float:left; margin-right:5px;">
+                 <img width="90" height="90" alt="" src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/IT168.jpg">
+                 </div><br>
+                <div class="" style="margin-top:10px;">
+                 <p class="">
+                         IT168企业级官微
+                </p>
+                 <p class="">
+
+                 <br><br>
+                 微信号：IT168qiye
+                </p>
+                </div>
+        </div>
+<hr size="1" style="clear:both;">
+        <div class="" style="clear:both;">
+                <div class="" style="float:left; margin-right:5px;">
+                 <img width="90" height="90" alt="" src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/itpub.jpg">
+                 </div><br>
+                <div class="" style="margin-top:10px;">
+                 <p class="">
+                         系统架构师大会
+                </p>
+                 <p class="">
+
+                 <br><br>
+                 微信号：SACC2013
+                </p>
+                </div>
+        </div>
+
+</div>
+      <div class="Blog_left2 Blog_bg1">
+        <div class="Blog_tit1">订阅</div>
+        <ul class="Blog_ul5">
+          <li><a href="http://blog.chinaunix.net/blog/rss/uid/23069658.html" class="Blog_a4"></a></li>
+          <li><a href="http://www.google.com/ig/add?feedurl=http%3A%2F%2Fblog.chinaunix.net%2Fuid%2F23069658.html" class="Blog_a5"></a></li>
+        </ul>
+      </div>
+      <div class="Blog_left2 Blog_left3 Blog_bg1">
+        <div class="Blog_tit1">推荐博文</div>
+        <ul class="Blog_ul6">
+				  			<li>·<a href="http://blog.chinaunix.net/uid-28032128-id-5278278.html" title="生命不息，折腾不止">生命不息，折腾不止</a></li>
+		  			<li>·<a href="http://blog.chinaunix.net/uid-20802110-id-5284598.html" title="PostgreSQL不同模式(SCHEMA)之间迁移数据">PostgreSQL不同模式(SCHEMA)...</a></li>
+		  			<li>·<a href="http://blog.chinaunix.net/uid-20639775-id-5225364.html" title="一个关于运维人员做事的很好的case，拿出来和大家共勉">一个关于运维人员做事的很好...</a></li>
+		  			<li>·<a href="http://blog.chinaunix.net/uid-12845622-id-5224026.html" title="DHCP的那些事儿">DHCP的那些事儿</a></li>
+		  			<li>·<a href="http://blog.chinaunix.net/uid-29386764-id-5213096.html" title="基于HTML5 WebGL实现3D飞机叶轮旋转">基于HTML5 WebGL实现3D飞机叶...</a></li>
+		  						
+        </ul>
+      </div>
+      <div class="Blog_left2 Blog_left3 Blog_bg1">
+        <div class="Blog_tit1">热词专题</div>
+        <ul class="Blog_ul6">
+                        <li>·<a href="http://blog.chinaunix.net/zt/1009/armcortexa8fu_1009555.shtml" target="blank" title="ARM编程第一步--点亮LED（Cortex-A8）">ARM编程第一步--点亮LED（Cor...</a></li>
+                        <li>·<a href="http://blog.chinaunix.net/zt/1012/ulimitcore_1012608.shtml" target="blank" title="Linux下程序崩溃，ulimit，coredump，gdbserver">Linux下程序崩溃，ulimit，co...</a></li>
+                        <li>·<a href="http://blog.chinaunix.net/zt/1029/linuxkernelallocremapjie_1029938.shtml" target="blank" title="Linux系统启动函数start_kernel探秘">Linux系统启动函数start_kern...</a></li>
+                        <li>·<a href="http://blog.chinaunix.net/zt/1003/linuxduoduo_1003089.shtml" target="blank" title="Linux下查看文件和文件夹大小">Linux下查看文件和文件夹大小...</a></li>
+                        <li class="no_line1">·<a href="http://blog.chinaunix.net/zt/1035/qthun_1035541.shtml" target="blank" title="Qt">Qt</a></li>
+          <!--              <li>·<a href="http://www.dataguru.cn/zhuanti/hadoop220peizhi.shtml" target='blank' title='配置hadoop2.2.0格式化namenode问题'></a></li>
+              <li>·<a href="http://www.dataguru.cn/zhuanti/hadoopshouce.shtml" target='blank' title='hadoop2.2.0安装手册'></a></li>-->
+        </ul>
+      </div>
+	  
+
+	</div>
+<script language="javascript">
+$(document).ready(function(){
+    /*目录树JS效果*/
+	$('#blogCla li > span').click(function(){
+		var cla = $(this).attr('class');
+		if(cla == 'Blog_jia1'){
+			//$('#blogCla li > span').removeClass('Blog_jian1').addClass('Blog_jia1');
+			//$('#blogCla li > .zk').css('display', 'none');
+				
+			$(this).removeClass('Blog_jia1').addClass('Blog_jian1');
+            $(this).parent().children('.zk').css('display', 'block');
+		}else{
+			$(this).removeClass('Blog_jian1').addClass('Blog_jia1');
+            $(this).parent().children('.zk').css('display', 'none');
+		}
+	});
+		
+	$('#blogdtr > p > span').click(function(){
+		var cla = $(this).attr('class');
+		if(cla == 'Blog_jia1'){
+			//$('#blogdtr > .Blog_p4 > span').removeClass('Blog_jian1').addClass('Blog_jia1');
+			//$('#blogdtr ul').css('display', 'none');
+				
+			$(this).removeClass('Blog_jia1').addClass('Blog_jian1');
+            $(this).parent().next().css('display', 'block');
+		}else{
+			$(this).removeClass('Blog_jian1').addClass('Blog_jia1');
+            $(this).parent().next().css('display', 'none');
+		}
+	});
+});
+</script>    <!-- 右 -->
+    <div class="Blog_right1">
+      <div class="Blog_right1_1 Blog_right1_11">
+        <div class="Blog_right1_2 ">
+			<!--推荐博文-->
+          <div class="Blog_tit4 Blog_tit5">
+                        <b class="Blog_b1"></b>
+            <a href="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客.html">Linux网络编程：基于TCP的程序开发回顾篇</a>
+            <em>2012-07-13 23:14:27</em>
+          </div>
+          <div class="Blog_con2">
+            <div class="Blog_con3">
+              <p>分类： <span>LINUX</span></p>
+			                <p></p>
+            </div>
+           <div class="Blog_wz1" style="word-wrap: break-word;">
+			<p class="MsoNormal"><font face="Arial" size="4">面向连接的<span lang="EN-US">TCP</span>程序设计</font></p>
+
+<p class="MsoNormal"><font face="Arial" size="4"><span lang="EN-US">&nbsp; &nbsp; &nbsp; &nbsp;</span>基于<span lang="EN-US">TCP</span>的程序开发分为服务器端和客户端两部分，常见的核心步骤和流程：</font></p><p class="MsoNormal" style="text-align: center;"><a href="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/23069658_1342193576yEs2.jpg" target="_blank"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/23069658_1342193576yEs2.jpg" width="596.7" height="454.5" onload="imgResize(this, 650);" border="0" ;=""></a></p><p class="MsoNormal"></p><p class="MsoNormal" align="left" style="text-align:left"><font face="Arial" size="4">&nbsp; &nbsp; &nbsp; &nbsp;其实按照上面这个流程调用系统<span lang="EN-US">API</span>确实可以完全实现应用层程序的开发，一点问题没有。可随着时间的推移，你会觉得这样子的开发毫无激情。为什么<span lang="EN-US">TCP</span>的开发就要按照这样的流程来呢？而且一般出的问题几乎都不在这几个系统调用上，原因何在？当我们弄清网络开发的本质，协议栈的设计原理、数据流向等这些问题的答案也就会慢慢浮出水面了。接下来这几篇博文主要是围绕网络编程展开，目的是引出后面对于<span lang="EN-US">Linux</span>下<span lang="EN-US">TCP/IP</span>协议栈的相关分析做铺垫。</font></p>
+
+<p class="MsoListParagraph" align="left" style="margin-left:39.0pt;text-align:left;
+text-indent:-18.0pt;mso-char-indent-count:0;mso-list:l0 level1 lfo1"><font face="Arial" size="4"><span lang="EN-US">1、<span style="line-height: normal; ">&nbsp; </span></span>创建<span lang="EN-US">socket</span></font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">到目前为止我们知道<span lang="EN-US">socket</span>的作用其实是非常大的，它不仅能够实现不同远端主机间的数据通信，还是可以实现不同进程间的通信，以及用户空间和内核空间的通信等等。其函数原型定义如下：</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><span lang="EN-US"><font face="Arial" size="4">int <span style="background:yellow;mso-highlight:yellow">socket</span>(int
+<span style="color:red">domain</span>, int <span style="color:red">type</span>,
+int <span style="color:red">protocol</span>);</font></span></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4"><span lang="EN-US">domain</span>：大家习惯性将其翻译成“协议域”或者“地址簇”，牵扯到“协议”这个词估计很多人就又晕了。也难怪，<span lang="EN-US">TCP</span>、<span lang="EN-US">UDP</span>我们叫协议，<span lang="EN-US">IP</span>我们也叫协议，到处都是协议。那么到底什么是协议？说白了，协议其实就是事先规定好的数据通信方式。例如我们经常说的<span lang="EN-US">TCP/IP</span>协议默认情况下都指的是<span lang="EN-US">IPv4</span>版本协议，现在还有<span lang="EN-US">IPv6</span>，它属于另外一种协议，还有在电信网里面经常听到的<span lang="EN-US">X.25</span>协议，用户空间和内核空间通信的<span lang="EN-US">netlink</span>协议等等。每种协议都有其特定的应用场景。这里，我们可以通俗的将<span lang="EN-US">domain</span>理解成“协议种类”。</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4"><span lang="EN-US">type</span>：直译就是“类型”的意思。因为不同种类的协议提供了不同的数据传输方式，我们常见的有面向连接的流式传输模式、无连接的数据报传输方式等。</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4"><span lang="EN-US">protocol</span>：才是我们具体的协议类型，如<span lang="EN-US">TCP</span>、<span lang="EN-US">UDP</span>之类的。怎么理解？我们知道在<span lang="EN-US">IPv4</span>协议族里，面向连接的流式套接字一般指的都是<span lang="EN-US">TCP</span>协议。在电信网中<span lang="EN-US">NO.7</span>信令体系中，实现了面向连接的流式套接字的协议就有<span lang="EN-US">ISUP</span>和<span lang="EN-US">TUP</span>协议。为什么平时一提到面向流式的套接字大家条件反射的就想起了<span lang="EN-US">TCP</span>，那是因为我们心里已经默认了前提是<span lang="EN-US">IPv4</span>协议族了。一般情况下，对于某种具体的套接字类型<span lang="EN-US">(</span>流式或数据报式<span lang="EN-US">)</span>都只有一种对应的实现协议，当然你心里必须要知道对于某些协议族有可能有多种协议。对于我们的<span lang="EN-US">IPv4</span>而言，在创建<span lang="EN-US">socket</span>套接字时，当指定了地址簇、套接字类型、<span lang="EN-US">protocol</span>协议字段一般都设置为<span lang="EN-US">0</span>。</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">关于<span lang="EN-US">socket()</span>函数我们再打个比方：</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">假如说<span lang="EN-US">socket()</span>函数就是个造人的机器，我们给它输入三个指令： </font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4"><span lang="EN-US">OK</span>，当我们输入：</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:18.0pt"><font face="Arial" size="4"><span lang="EN-US" style="background:gray;mso-highlight:gray">socket(</span><span style="background-color: gray; background-position: initial initial; background-repeat: initial initial; ">黑种人，会说话，英文</span><span lang="EN-US" style="background:gray;mso-highlight:gray">) </span><span lang="EN-US" style="background-color: gray; background-position: initial initial; background-repeat: initial initial; ">=&gt;</span><span style="background-color: gray; background-position: initial initial; background-repeat: initial initial; ">马丁路德</span>；</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:18.0pt"><font face="Arial" size="4"><span lang="EN-US" style="background:gray;mso-highlight:gray">socket(</span><span style="background-color: gray; background-position: initial initial; background-repeat: initial initial; ">黑种人，会说话，英文</span><span lang="EN-US" style="background:gray;mso-highlight:gray">) =&gt;</span><span style="background-color: gray; background-position: initial initial; background-repeat: initial initial; ">威尔史密斯</span>；</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:18.0pt"><font face="Arial" size="4">因为黑人缺省情况下说的话都是英文，所以他们会说话的功能也就仅局限英文了，不会有二义性。</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:18.0pt"><font face="Arial" size="4">可我们高贵的黄种人就不一样了<span lang="EN-US">(JP</span>不在此范畴<span lang="EN-US">)</span>，所以会说话的黄种人就多了去了。所以如果我们要造一个会说话的黄种人，必须进一步限定说话的语言才行。</font></p>
+
+<p class="MsoNormal" align="left" style="margin-left:18.0pt;text-align:left"><font face="Arial" size="4"><span lang="EN-US" style="background:yellow;mso-highlight:yellow">socket(</span><span style=" background-position: initial initial; background-repeat: initial initial; ">黄种人，会说话，中文</span><span lang="EN-US" style="background:yellow;mso-highlight:yellow">) =&gt;</span><span style=" background-position: initial initial; background-repeat: initial initial; ">孔子</span>；</font></p>
+
+<p class="MsoNormal" align="left" style="margin-left:18.0pt;text-align:left"><font face="Arial" size="4"><span lang="EN-US" style="background:yellow;mso-highlight:yellow">socket(</span><span style=" background-position: initial initial; background-repeat: initial initial; ">黄种人，会说话，朝鲜语</span><span lang="EN-US" style="background:yellow;mso-highlight:yellow">) </span><span lang="EN-US" style=" background-position: initial initial; background-repeat: initial initial; ">=&gt;</span><span style=" background-position: initial initial; background-repeat: initial initial; ">金正日</span>；</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:18.0pt"><font face="Arial" size="4">通过这个例子，大家就可以好好体会一下<span lang="EN-US">socket()</span>函数三个参数的作用和意义。</font></p>
+
+<p class="MsoListParagraph" align="left" style="margin-left:39.0pt;text-align:left;
+text-indent:-18.0pt;mso-char-indent-count:0;mso-list:l0 level1 lfo1"><font face="Arial" size="4"><span lang="EN-US">2、<span style="line-height: normal; ">&nbsp; </span></span>绑定地址</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">它的主要作用是将由<span lang="EN-US">socket()</span>函数创建<span lang="EN-US">socket</span>文件描述符和一个本地地址结构体绑定起来。本地地址结构体一般都指明了我们这个<span lang="EN-US">socket</span>文件描述符所属的协议簇，如果本地是多网卡多<span lang="EN-US">IP</span>地址的话，可以在指定与哪个地址进行绑定，如果是任意<span lang="EN-US">IP</span>地址一般将地址字段设置为<span lang="EN-US">htonl(INADDR_ANY)</span>，以及所使用的端口。函数原型如下：</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><span lang="EN-US"><font face="Arial" size="4">int <span style="background:yellow;mso-highlight:yellow">bind</span>(int
+<span style="color:red">sockfd</span>, const struct sockaddr *<span style="color:red">my_addr</span>, socklen_t <span style="color:red">addrlen</span>);</font></span></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">第二个参数<span lang="EN-US">my_addr</span>的类型的定义如下：</font></p>
+
+<table class="MsoTableGrid" border="1" cellspacing="0" cellpadding="0" style="margin-left:26.7pt;background:#BFBFBF;mso-background-themecolor:background1;
+ mso-background-themeshade:191;border-collapse:collapse;border:none;mso-border-alt:
+ solid black .5pt;mso-border-themecolor:text1;mso-yfti-tbllook:1184;mso-padding-alt:
+ 0cm 5.4pt 0cm 5.4pt">
+ <tbody><tr>
+  <td width="482" valign="top" style="width:361.45pt;border:solid black 1.0pt;
+  mso-border-themecolor:text1;mso-border-alt:solid black .5pt;mso-border-themecolor:
+  text1;padding:0cm 5.4pt 0cm 5.4pt">
+  <p class="MsoNormal"><span lang="EN-US"><font face="Arial" size="4">struct <span style="color:#00B050">sockaddr</span>{<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; unisgned short&nbsp; as_family;<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; char&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  sa_data[14];<br>
+  };</font></span></p>
+  </td>
+ </tr>
+</tbody></table>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">我们在<span lang="EN-US">Internet</span>编程中一般不用这个结构，而是用：</font></p>
+
+<table class="MsoTableGrid" border="1" cellspacing="0" cellpadding="0" style="margin-left:26.7pt;background:#BFBFBF;mso-background-themecolor:background1;
+ mso-background-themeshade:191;border-collapse:collapse;border:none;mso-border-alt:
+ solid black .5pt;mso-border-themecolor:text1;mso-yfti-tbllook:1184;mso-padding-alt:
+ 0cm 5.4pt 0cm 5.4pt">
+ <tbody><tr>
+  <td width="482" valign="top" style="width:361.45pt;border:solid black 1.0pt;
+  mso-border-themecolor:text1;mso-border-alt:solid black .5pt;mso-border-themecolor:
+  text1;padding:0cm 5.4pt 0cm 5.4pt">
+  <p class="MsoNormal"><span lang="EN-US"><font face="Arial" size="4">struct <span style="color:#00B050">sockaddr_in</span>{<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; unsigned short&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  sin_family;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; unsigned short int&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; sin_port;<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; struct <span style="color:#00B050">in_addr</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  sin_addr;<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; unsigned char&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  sin_zero[8];</font></span></p>
+  <p class="MsoNormal"><span lang="EN-US"><font face="Arial" size="4">}</font></span></p>
+  </td>
+ </tr>
+</tbody></table>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">在调用<span lang="EN-US">bind()</span>函数时将一个<span lang="EN-US">sockaddr_in{}</span>类型的对象强制转换成<span lang="EN-US">sockaddr{}</span>类型赋给<span lang="EN-US">bind()</span>函数的第二个参数。</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">第三个参数<span lang="EN-US">addrlen</span>指的是第二个参数在<span lang="EN-US">sockaddr{}</span>类型下的实际长度。</font></p>
+
+<p class="MsoListParagraph" align="left" style="margin-left:39.0pt;text-align:left;
+text-indent:-18.0pt;mso-char-indent-count:0;mso-list:l0 level1 lfo1"><font face="Arial" size="4"><span lang="EN-US">3、<span style="line-height: normal; ">&nbsp; </span></span>系统监听</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">一般在基于流式的套接字编程中服务器端的开发需要执行这一步。为什么？以后解释。这一步我们主要调用的<span lang="EN-US">API</span>函数是：</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><span lang="EN-US"><font face="Arial" size="4">int <span style="background:yellow;mso-highlight:yellow">listen</span>(int
+<span style="color:red">sockfd</span>, int <span style="color:red">backlog</span>);</font></span></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">该函数的主要作用就是将<span lang="EN-US">sockfd</span>变成被动的连接的监听套接字。<span lang="EN-US">backlog</span>指明那些已经经过了<span lang="EN-US">TCP</span>三次握手的处于<span lang="EN-US">established</span>状态的连接项在被系统调度前的最大排队等候数。</font></p>
+
+<p class="MsoListParagraph" align="left" style="margin-left:39.0pt;text-align:left;
+text-indent:-18.0pt;mso-char-indent-count:0;mso-list:l0 level1 lfo1"><font face="Arial" size="4"><span lang="EN-US">4、<span style="line-height: normal; ">&nbsp; </span></span>主动连接</font></p>
+
+<p class="MsoNormal" align="left" style="margin-left:21.0pt;text-align:left"><span lang="EN-US"><font face="Arial" size="4">int&nbsp; <span style="background:
+yellow;mso-highlight:yellow">connect</span>(int <span style="color:red">sockfd</span>,
+const struct sockaddr *<span style="color:red">serv_addr</span>, socklen_t <span style="color:red">addrlen</span>);</font></span></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">该函数是客户端主动连接服务器的<span lang="EN-US">API</span>调用。流式套接字可以调用，面向无连接的套接字也可以使用。但在实际应用中，后者调用该函数的情形还是比较少。</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">对于面向连接的套接字，当调用该函数时，客户端会向服务端发起一个<span lang="EN-US">SYN</span>的连接请求，对于<span lang="EN-US">TCP</span>来说此时就开始了<span lang="EN-US">3</span>次握手的流程。如果客户端设置为阻塞模式，那么<span lang="EN-US">connect()</span>函数会一直阻塞，直到<span lang="EN-US">3</span>次握手成功或超时失败才返回；</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">对于无连接的套接字，调用该函数只是说明了客户端默认情况下发送和接受的数据报都来自<span lang="EN-US">serv_addr</span>地址，仅此而已。</font></p>
+
+<p class="MsoListParagraph" align="left" style="margin-left:39.0pt;text-align:left;
+text-indent:-18.0pt;mso-char-indent-count:0;mso-list:l0 level1 lfo1"><font face="Arial" size="4"><span lang="EN-US">5、<span style="line-height: normal; ">&nbsp; </span></span>接受连接</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">当客户端主动用<span lang="EN-US">connect()</span>去连接服务器时，针对于<span lang="EN-US">TCP</span>这样的流式套接字，此时便后触发其<span lang="EN-US">3</span>次握手的流程。当然<span lang="EN-US">3</span>次握手成功的速度依赖于网络的健康状况和终端的处理性能。当服务器端收到客户端发来的第一个<span lang="EN-US">SYN</span>报文，该连接就为半连接状态，处于半连接队列中；对于那些完成了<span lang="EN-US">3</span>次握手的连接，<span lang="EN-US">TCP</span>会将其从半连接队列移到一个名为<span lang="EN-US">established</span>状态的已连接队列里，在<span lang="EN-US">accept()</span>函数返回之前该连接项暂时是不可用的：</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><span lang="EN-US"><font face="Arial" size="4">int <span style="background:yellow;mso-highlight:yellow">accept</span>(int
+<span style="color:red">sockfd</span>, struct sockaddr *<span style="color:
+red">addr</span>, socklen_t *<span style="color:red">addrlen</span>);</font></span></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">该函数会从处于<span lang="EN-US">established</span>状态的连接队列头部取出一个连接，然后生成一个新的<span lang="EN-US">socket</span>连接，并返回新的<span lang="EN-US">socket</span>文件描述。其中第二个参数<span lang="EN-US">addr</span>中存储了来自客户端的一些地址信息，第三个参数<span lang="EN-US">addrlen</span>指明了第二个参数所占的字节数。该函数目前也仅用在基于流式的套接字编程里</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">至此，前面介过<span lang="EN-US">listen()</span>函数中<span lang="EN-US">backlog</span>的意思现在我们应该已经很明确了。</font></p>
+
+<p class="MsoListParagraph" align="left" style="margin-left:39.0pt;text-align:left;
+text-indent:-18.0pt;mso-char-indent-count:0;mso-list:l0 level1 lfo1"><font face="Arial" size="4"><span lang="EN-US">6、<span style="line-height: normal; ">&nbsp; </span></span>收发数据</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">收数据：<span lang="EN-US">recv</span>、<span lang="EN-US">recvfrom</span>、<span lang="EN-US">recvmsg</span>和<span lang="EN-US">read</span></font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">对于<span lang="EN-US">recvfrom </span>和<span lang="EN-US"> recvmsg</span>，可同时应用于面向连接的和无连接的套接字。<span lang="EN-US" style="background:yellow;mso-highlight:yellow">recv</span><span style=" background-position: initial initial; background-repeat: initial initial; ">一般只用在面向连接的套接字。</span>只要将<span lang="EN-US">recvfrom</span>的第五个参数设置<span lang="EN-US">NULL</span>，几乎等同于<span lang="EN-US">recvfrom</span>，。如果消息太大，无法完整存放在所提供的缓冲区时会根据不同的套接字，多余的字节会丢弃。假如套接字上没有消息可以读取，除非套接字已被设置为非阻塞模式，否则接收调用会等待消息的到来。</font></p>
+
+<p class="MsoNormal" align="left" style="text-align:left;text-indent:21.0pt"><font face="Arial" size="4">发数据：<span lang="EN-US">send</span>、<span lang="EN-US">sendto</span>、<span lang="EN-US">sendmsg</span>和<span lang="EN-US">write</span></font></p>
+
+<p class="MsoNormal" style="text-indent:21.0pt"><font face="Arial" size="4"><span lang="EN-US" style="background:yellow;mso-highlight:yellow">send</span><span style=" background-position: initial initial; background-repeat: initial initial; ">只可用于基于连接的套接字</span>，<span lang="EN-US">send </span>和<span lang="EN-US"> write</span>唯一的不同点是标志的存在，当标志为<span lang="EN-US">0</span>时，<span lang="EN-US">send</span>等同于<span lang="EN-US">write</span>。<span lang="EN-US">sendto </span>和<span lang="EN-US"> sendmsg</span>既可用于无连接的套接字，也可用于基于连接的套接字。除非套接字设置为非阻塞模式，否则调用将会阻塞直到数据被发送完。</font></p>
+
+<p class="MsoNormal" style="text-indent:21.0pt"><font face="Arial" size="4">也就说是在<span lang="EN-US">TCP</span>编程中，收发数据<b><i><span style="color:red">一般</span></i></b>用得最多的就是<span lang="EN-US">recv</span>和<span lang="EN-US">send</span>或者<span lang="EN-US">read</span>和<span lang="EN-US">write</span>。</font></p>
+
+<p class="MsoNormal" style="text-indent:21.0pt"><font face="Arial" size="4">不管怎么说，记住一点就行：<b><u><span lang="EN-US" style="color:red">recv</span></u></b><b><u><span style="color: red; ">和</span><span lang="EN-US" style="color:red">send</span></u></b><b><u><span style="color: red; ">函数提供了和</span><span lang="EN-US" style="color:red">read</span></u></b><b><u><span style="color: red; ">和</span><span lang="EN-US" style="color:red">write</span></u></b><b><u><span style="color: red; ">差不多的功能</span></u></b>，不过它们提供了第四个参数来控制读写操作。</font></p>
+
+<p class="MsoNormal" style="text-indent:21.0pt"><font face="Arial" size="4">这里我们仅讨论一下<span lang="EN-US">read</span>和<span lang="EN-US">write</span>这种更通用的<span lang="EN-US">IO</span>操作：</font></p>
+
+<p class="MsoNormal" style="text-indent:21.0pt"><span lang="EN-US"><font face="Arial" size="4">ssize_t <span style="background:yellow;mso-highlight:yellow">read</span>(int <span style="color:red">fd</span>, void *<span style="color:red">buf</span>, size_<span style="color:red">t count</span>);</font></span></p>
+
+<p class="MsoNormal" style="text-indent:21.0pt"><span lang="EN-US"><font face="Arial" size="4">ssize_t <span style="background:yellow;mso-highlight:yellow">write</span>(int <span style="color:red">fd</span>, const void *<span style="color:red">buf</span>,
+size_t <span style="color:red">count</span>);</font></span></p>
+
+<p class="MsoNormal" style="text-indent:21.0pt"><font face="Arial" size="4">这两个函数分别由<span lang="EN-US">fd</span>所指定的<span lang="EN-US">socket</span>套接口发送<span lang="EN-US">(</span>接收<span lang="EN-US">)count</span>个字节的数据，然后将其存储在<span lang="EN-US">buf</span>变量所指向的缓冲区里。这两个函数均返回实际成功发送<span lang="EN-US">(</span>接受<span lang="EN-US">)</span>的字节数。</font></p>
+
+<p class="MsoListParagraph" align="left" style="margin-left:39.0pt;text-align:left;
+text-indent:-18.0pt;mso-char-indent-count:0;mso-list:l0 level1 lfo1"><font face="Arial" size="4"><span lang="EN-US">7、<span style="line-height: normal; ">&nbsp; </span></span>关闭连接</font></p>
+
+<p class="MsoNormal" align="left" style="margin-left:21.0pt;text-align:left"><span lang="EN-US"><font face="Arial" size="4">int close(int fd);</font></span></p>
+
+<font face="Arial" size="4">&nbsp; &nbsp; &nbsp;调用该函数时对于<span lang="EN-US">TCP</span>编程而言会触发一个<span lang="EN-US">FIN</span>报文导致连接关闭。</font><p></p><p class="MsoNormal"><font face="Arial" size="4">&nbsp; &nbsp; &nbsp;还是看个小小的例子，热热身：</font><span style="font-family: Arial; font-size: large; ">&nbsp;&nbsp;</span></p><span style="font-family: Arial; font-size: large; ">&nbsp; &nbsp; &nbsp;TCP服务器端的开发</span><p class="MsoNormal"></p><div><div class="codeheads"><p> 点击(<span style="cursor:pointer;color:red;" onclick="code_hide(&#39;code112&#39;)">此处</span>)折叠或打开</p></div><div id="code112" class="codeText" style="display: block;"><ol style="margin-left: 0px; padding-left: 40px; " start="1" class="dp-css"><li><span style="color:#0000CC;">/</span><span style="color:#0000CC;">/</span>TCP示例服务器端 tcpSrv.c<br></li><li>#include <span style="color:#0000CC;">&lt;</span>stdlib<span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span>stdio<span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span>errno<span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span><span style="color:#FF0000;">string</span><span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span>unistd<span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span>netdb<span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span>sys<span style="color:#0000CC;">/</span>socket<span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span>netinet<span style="color:#0000CC;">/</span><span style="color:#0000FF;">in</span><span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span>sys<span style="color:#0000CC;">/</span>types<span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span>arpa<span style="color:#0000CC;">/</span>inet<span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li><span style="color:#FF0000;">int</span> main<span style="color:#0000CC;">(</span><span style="color:#FF0000;">int</span> argc<span style="color:#0000CC;">,</span> char <span style="color:#0000CC;">*</span>argv<span style="color:#0000CC;">[</span><span style="color:#0000CC;">]</span><span style="color:#0000CC;">)</span><br></li><li><span style="color:#0000CC;">{</span><br></li><li>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#FF0000;">int</span> skfd<span style="color:#0000CC;">,</span>cnfd<span style="color:#0000CC;">,</span>addr_len<span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; struct sockaddr_in srv_addr<span style="color:#0000CC;">,</span>clt_addr<span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; <span style="color:#FF0000;">int</span> portnumber<span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; char hello<span style="color:#0000CC;">[</span><span style="color:#0000CC;">]</span><span style="color:#0000CC;">=</span><span style="color:#FF00FF;">"Hello! Long time no see.\n"</span><span style="color:#0000CC;">;</span></li><li>&nbsp; &nbsp; <span style="color:#0000FF;">if</span><span style="color:#0000CC;">(</span>2 <span style="color:#0000CC;">!</span><span style="color:#0000CC;">=</span> argc <span style="color:#0000CC;">|</span><span style="color:#0000CC;">|</span> 0 <span style="color:#0000CC;">&gt;</span> <span style="color:#0000CC;">(</span>portnumber<span style="color:#0000CC;">=</span>atoi<span style="color:#0000CC;">(</span>argv<span style="color:#0000CC;">[</span>1<span style="color:#0000CC;">]</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000CC;">{</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;printf<span style="color:#0000CC;">(</span><span style="color:#FF00FF;">"Usage:%s port\n"</span><span style="color:#0000CC;">,</span>argv<span style="color:#0000CC;">[</span>0<span style="color:#0000CC;">]</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color:#0000FF;">exit</span><span style="color:#0000CC;">(</span>1<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000CC;">}</span><br></li><li>&nbsp; &nbsp;&nbsp;</li><li>&nbsp; &nbsp; <font size="3" color="#008000">/* 创建IPv4的流式套接字描述符 */</font><br></li><li>&nbsp; &nbsp; <span style="color:#0000FF;">if</span><span style="color:#0000CC;">(</span><span style="color:#0000CC;">-</span>1 <span style="color:#0000CC;">=</span><span style="color:#0000CC;">=</span> <span style="color:#0000CC;">(</span>skfd<span style="color:#0000CC;">=</span>socket<span style="color:#0000CC;">(</span>AF_INET<span style="color:#0000CC;">,</span>SOCK_STREAM<span style="color:#0000CC;">,</span>0<span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000CC;">{</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;perror<span style="color:#0000CC;">(</span><span style="color:#FF00FF;">"Socket Error:"</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color:#0000FF;">exit</span><span style="color:#0000CC;">(</span>1<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000CC;">}</span><br></li><li><span style="color:#0000CC;"><br></span></li><li>&nbsp; &nbsp; <font color="#008000" size="3">/* 填充服务器端sockaddr地址结构  */</font><br></li><li>&nbsp; &nbsp; bzero<span style="color:#0000CC;">(</span><span style="color:#0000CC;">&amp;</span>srv_addr<span style="color:#0000CC;">,</span>sizeof<span style="color:#0000CC;">(</span>struct sockaddr_in<span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; srv_addr<span style="color:#0000CC;">.</span>sin_family<span style="color:#0000CC;">=</span>AF_INET<span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; srv_addr<span style="color:#0000CC;">.</span>sin_addr<span style="color:#0000CC;">.</span>s_addr<span style="color:#0000CC;">=</span>htonl<span style="color:#0000CC;">(</span>INADDR_ANY<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; srv_addr<span style="color:#0000CC;">.</span>sin_port<span style="color:#0000CC;">=</span>htons<span style="color:#0000CC;">(</span>portnumber<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li><span style="color:#0000CC;"><br></span></li><li>&nbsp; &nbsp;<font color="#008000" size="3"> /* 将套接字描述符skfd和地址信息结构体绑定起来  */</font><br></li><li>&nbsp; &nbsp; <span style="color:#0000FF;">if</span><span style="color:#0000CC;">(</span><span style="color:#0000CC;">-</span>1 <span style="color:#0000CC;">=</span><span style="color:#0000CC;">=</span> bind<span style="color:#0000CC;">(</span>skfd<span style="color:#0000CC;">,</span><span style="color:#0000CC;">(</span>struct sockaddr <span style="color:#0000CC;">*</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">(</span><span style="color:#0000CC;">&amp;</span>srv_addr<span style="color:#0000CC;">)</span><span style="color:#0000CC;">,</span>sizeof<span style="color:#0000CC;">(</span>struct sockaddr<span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000CC;">{</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;perror<span style="color:#0000CC;">(</span><span style="color:#FF00FF;">"Bind error:"</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color:#0000FF;">exit</span><span style="color:#0000CC;">(</span>1<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000CC;">}</span><br></li><li><span style="color:#0000CC;"><br></span></li><li>&nbsp; &nbsp; <font color="#008000" size="3">/* 将skfd转换为被动建通模式  */</font><br></li><li>&nbsp; &nbsp; <span style="color:#0000FF;">if</span><span style="color:#0000CC;">(</span><span style="color:#0000CC;">-</span>1 <span style="color:#0000CC;">=</span><span style="color:#0000CC;">=</span> listen<span style="color:#0000CC;">(</span>skfd<span style="color:#0000CC;">,</span>4<span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000CC;">{</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;perror<span style="color:#0000CC;">(</span><span style="color:#FF00FF;">"Listen error:"</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color:#0000FF;">exit</span><span style="color:#0000CC;">(</span>1<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000CC;">}</span><br></li><li><br></li><li>&nbsp; &nbsp; <span style="color:#0000FF;">while</span><span style="color:#0000CC;">(</span>1<span style="color:#0000CC;">)</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000CC;">{</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp;<font color="#008000" size="3">/* 调用accept,服务器端一直阻塞，直到客户程序与其建立连接成功为止</font><span style="color: rgb(0, 128, 0); font-size: medium; ">*</span><span style="color: rgb(0, 128, 0); font-size: medium; ">/</span></li><li>&nbsp; &nbsp; &nbsp; &nbsp; addr_len<span style="color:#0000CC;">=</span>sizeof<span style="color:#0000CC;">(</span>struct sockaddr_in<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<span style="color:#0000FF;">if</span><span style="color:#0000CC;">(</span><span style="color:#0000CC;">-</span>1 <span style="color:#0000CC;">=</span><span style="color:#0000CC;">=</span> <span style="color:#0000CC;">(</span>cnfd<span style="color:#0000CC;">=</span>accept<span style="color:#0000CC;">(</span>skfd<span style="color:#0000CC;">,</span><span style="color:#0000CC;">(</span>struct sockaddr <span style="color:#0000CC;">*</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">(</span><span style="color:#0000CC;">&amp;</span>clt_addr<span style="color:#0000CC;">)</span><span style="color:#0000CC;">,</span><span style="color:#0000CC;">&amp;</span>addr_len<span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<span style="color:#0000CC;">{</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;perror<span style="color:#0000CC;">(</span><span style="color:#FF00FF;">"Accept error:"</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color:#0000FF;">exit</span><span style="color:#0000CC;">(</span>1<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<span style="color:#0000CC;">}</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; printf<span style="color:#0000CC;">(</span><span style="color:#FF00FF;">"Connect from %s:%u ...!\n"</span><span style="color:#0000CC;">,</span><font color="#f00000" size="3">inet_ntoa</font><span style="color:#0000CC;">(</span>clt_addr<span style="color:#0000CC;">.</span>sin_addr<span style="color:#0000CC;">)</span><span style="color:#0000CC;">,</span><font color="#f00000" size="3"><b>ntohs</b></font><span style="color:#0000CC;">(</span>clt_addr<span style="color:#0000CC;">.</span>sin_port<span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span> <br></li><li>&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<span style="color:#0000FF;">if</span><span style="color:#0000CC;">(</span><span style="color:#0000CC;">-</span>1 <span style="color:#0000CC;">=</span><span style="color:#0000CC;">=</span> write<span style="color:#0000CC;">(</span>cnfd<span style="color:#0000CC;">,</span>hello<span style="color:#0000CC;">,</span>strlen<span style="color:#0000CC;">(</span>hello<span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">{</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;perror<span style="color:#0000CC;">(</span><span style="color:#FF00FF;">"Send error:"</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color:#0000FF;">exit</span><span style="color:#0000CC;">(</span>1<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<span style="color:#0000CC;">}</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; close<span style="color:#0000CC;">(</span>cnfd<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; &nbsp;<span style="color:#0000CC;">}</span><br></li><li>&nbsp; &nbsp; &nbsp;close<span style="color:#0000CC;">(</span>skfd<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; &nbsp;<span style="color:#0000FF;">exit</span><span style="color:#0000CC;">(</span>0<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li><span style="color:#0000CC;">}</span></li></ol></div></div><p></p>&nbsp; &nbsp; &nbsp;TCP客户端<span style="font-family: Arial; font-size: large; ">端的开发如下</span><div><div><div class="codeheads"><p> 点击(<span style="cursor:pointer;color:red;" onclick="code_hide(&#39;code198&#39;)">此处</span>)折叠或打开</p></div><div id="code198" class="codeText"><ol style="margin-left: 0px; padding-left: 40px; " start="1" class="dp-css"><li>//TCP示例客户端 tcpclt.c</li><li>#include <span style="color:#0000CC;">&lt;</span>stdlib<span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span>stdio<span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span>errno<span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span><span style="color:#FF0000;">string</span><span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span>unistd<span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span>fcntl<span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span>netdb<span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span>sys<span style="color:#0000CC;">/</span>socket<span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span>netinet<span style="color:#0000CC;">/</span><span style="color:#0000FF;">in</span><span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span>sys<span style="color:#0000CC;">/</span>types<span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li>#include <span style="color:#0000CC;">&lt;</span>arpa<span style="color:#0000CC;">/</span>inet<span style="color:#0000CC;">.</span>h<span style="color:#0000CC;">&gt;</span><br></li><li><span style="color:#FF0000;">int</span> main<span style="color:#0000CC;">(</span><span style="color:#FF0000;">int</span> argc<span style="color:#0000CC;">,</span> char <span style="color:#0000CC;">*</span>argv<span style="color:#0000CC;">[</span><span style="color:#0000CC;">]</span><span style="color:#0000CC;">)</span><br></li><li><span style="color:#0000CC;">{</span><br></li><li>&nbsp; &nbsp; <span style="color:#FF0000;">int</span> skfd<span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; char buf<span style="color:#0000CC;">[</span>1024<span style="color:#0000CC;">]</span> <span style="color:#0000CC;">=</span> <span style="color:#0000CC;">{</span>0<span style="color:#0000CC;">}</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; struct sockaddr_in server_addr<span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; struct hostent <span style="color:#0000CC;">*</span>host<span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; <span style="color:#FF0000;">int</span> portnumber<span style="color:#0000CC;">,</span>nbytes<span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000FF;">if</span><span style="color:#0000CC;">(</span>3 <span style="color:#0000CC;">!</span><span style="color:#0000CC;">=</span> argc <span style="color:#0000CC;">|</span><span style="color:#0000CC;">|</span> 0<span style="color:#0000CC;">&gt;</span><span style="color:#0000CC;">(</span>portnumber<span style="color:#0000CC;">=</span>atoi<span style="color:#0000CC;">(</span>argv<span style="color:#0000CC;">[</span>2<span style="color:#0000CC;">]</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000CC;">{</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;printf<span style="color:#0000CC;">(</span><span style="color:#FF00FF;">"Usage:%s hostname portnumber \n"</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color:#0000FF;">exit</span><span style="color:#0000CC;">(</span>1<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000CC;">}</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000FF;">if</span><span style="color:#0000CC;">(</span><span style="color:#0000FF;">NULL</span> <span style="color:#0000CC;">=</span><span style="color:#0000CC;">=</span> <span style="color:#0000CC;">(</span>host<span style="color:#0000CC;">=</span>gethostbyname<span style="color:#0000CC;">(</span>argv<span style="color:#0000CC;">[</span>1<span style="color:#0000CC;">]</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000CC;">{</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;perror<span style="color:#0000CC;">(</span><span style="color:#FF00FF;">"Gethostname error:"</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color:#0000FF;">exit</span><span style="color:#0000CC;">(</span>1<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000CC;">}</span><br></li><li><span style="color:#0000CC;"><br></span></li><li>&nbsp; &nbsp; <font color="#008000" size="3">/* 创建socket描述符  */</font><br></li><li>&nbsp; &nbsp; <span style="color:#0000FF;">if</span><span style="color:#0000CC;">(</span><span style="color:#0000CC;">-</span>1 <span style="color:#0000CC;">=</span><span style="color:#0000CC;">=</span> <span style="color:#0000CC;">(</span>skfd<span style="color:#0000CC;">=</span>socket<span style="color:#0000CC;">(</span>AF_INET<span style="color:#0000CC;">,</span>SOCK_STREAM<span style="color:#0000CC;">,</span>0<span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000CC;">{</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;perror<span style="color:#0000CC;">(</span><span style="color:#FF00FF;">"Socket Error:"</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color:#0000FF;">exit</span><span style="color:#0000CC;">(</span>1<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000CC;">}</span><br></li><li><span style="color:#0000CC;"><br></span></li><li>&nbsp; &nbsp;<font color="#008000" size="3"> /* 客户端填充需要连接的服务器的地址信息结构体       */</font><br></li><li>&nbsp; &nbsp; bzero<span style="color:#0000CC;">(</span><span style="color:#0000CC;">&amp;</span>server_addr<span style="color:#0000CC;">,</span>sizeof<span style="color:#0000CC;">(</span>server_addr<span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; server_addr<span style="color:#0000CC;">.</span>sin_family<span style="color:#0000CC;">=</span>AF_INET<span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; server_addr<span style="color:#0000CC;">.</span>sin_port<span style="color:#0000CC;">=</span><b><font color="#f00000" size="3">htons</font></b><span style="color:#0000CC;">(</span>portnumber<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; server_addr<span style="color:#0000CC;">.</span>sin_addr<span style="color:#0000CC;">=</span><font color="#f00000" size="3"><b>*((struct in_addr *)host-&gt;h_addr)</b></font><span style="color:#0000CC;">;</span><br></li><li><span style="color:#0000CC;"><br></span></li><li>&nbsp; &nbsp; <font color="#008000" size="3">/* 客户端调用connect主动发起连接请求 */</font><br></li><li>&nbsp; &nbsp; <span style="color:#0000FF;">if</span><span style="color:#0000CC;">(</span><span style="color:#0000CC;">-</span>1 <span style="color:#0000CC;">=</span><span style="color:#0000CC;">=</span> connect<span style="color:#0000CC;">(</span>skfd<span style="color:#0000CC;">,</span><span style="color:#0000CC;">(</span>struct sockaddr <span style="color:#0000CC;">*</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">(</span><span style="color:#0000CC;">&amp;</span>server_addr<span style="color:#0000CC;">)</span><span style="color:#0000CC;">,</span>sizeof<span style="color:#0000CC;">(</span>struct sockaddr<span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000CC;">{</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;perror<span style="color:#0000CC;">(</span><span style="color:#FF00FF;">"Connect Error:"</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color:#0000FF;">exit</span><span style="color:#0000CC;">(</span>1<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000CC;">}</span><br></li><li><span style="color:#0000CC;"><br></span></li><li>&nbsp; &nbsp; <font color="#008000" size="3">/*客户端只接收服务器发来的数据，然后就退出*/</font><br></li><li>&nbsp; &nbsp; <span style="color:#0000FF;">if</span><span style="color:#0000CC;">(</span><span style="color:#0000CC;">-</span>1 <span style="color:#0000CC;">=</span><span style="color:#0000CC;">=</span> read<span style="color:#0000CC;">(</span>skfd<span style="color:#0000CC;">,</span>buf<span style="color:#0000CC;">,</span>1024<span style="color:#0000CC;">)</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">{</span><br></li><li>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;perror<span style="color:#0000CC;">(</span><span style="color:#FF00FF;">"Recv Error:"</span><span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000CC;">}</span><br></li><li>&nbsp; &nbsp; printf<span style="color:#0000CC;">(</span><span style="color:#FF00FF;">"Date arrived:%s"</span><span style="color:#0000CC;">,</span>buf<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li><span style="color:#0000CC;"><br></span></li><li>&nbsp; &nbsp; <font color="#008000" size="3">/* 拆除TCP连接     */</font><br></li><li>&nbsp; &nbsp; close<span style="color:#0000CC;">(</span>skfd<span style="color:#0000CC;">)</span><span style="color:#0000CC;">;</span><br></li><li>&nbsp; &nbsp; <span style="color:#0000FF;">exit</span><span style="color:#0000CC;">(</span>0<span style="color:#0000CC;">);</span></li><li><span style="color:#0000CC;">}</span></li></ol></div></div>&nbsp; &nbsp; <font size="4" face="Arial">&nbsp;以上只是我们对TCP网路程序开发流程的一个简单回顾，主要目的不是为了写出多漂亮的代码，所以没考虑多进程并发访问。只是简单的当客户端和服务器端建立TCP连接后，服务器打印出客户端的地址信息“IP+PORT”,然后服务器向客户端发送一个“Hello! Long time no see.”简单数据，而客户端也仅一个接收函数，将其打印出出来后客户端就退出了。结果如下：</font></div><div style="text-align: center;">&nbsp; &nbsp; &nbsp;<a href="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/23069658_1342195465ivlR.jpg" target="_blank"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/23069658_1342195465ivlR.jpg" width="597.18" height="295.26" onload="imgResize(this, 650);" border="0" ;=""></a></div><div>&nbsp; &nbsp; <font size="4" face="Arial">&nbsp;今天主要简单回顾了一下基于TCP的程序开发流程而已。</font></div>           </div>
+            <!-- <div class="Blog_con3_1">管理员在2009年8月13日编辑了该文章文章。</div> -->
+            <div class="Blog_con2_1 Blog_con3_2">
+              <div>
+			  <!--<img src="/image/default/tu_8.png">-->
+			  <!-- JiaThis Button BEGIN -->
+				<div class="bdsharebuttonbox bdshare-button-style0-16" data-bd-bind="1446264714951"><a class="bds_more" href="http://blog.chinaunix.net/uid-23069658-id-3273673.html#" data-cmd="more"></a><a class="bds_qzone" title="分享到QQ空间" href="http://blog.chinaunix.net/uid-23069658-id-3273673.html#" data-cmd="qzone"></a><a class="bds_tsina" title="分享到新浪微博" href="http://blog.chinaunix.net/uid-23069658-id-3273673.html#" data-cmd="tsina"></a><a class="bds_tqq" title="分享到腾讯微博" href="http://blog.chinaunix.net/uid-23069658-id-3273673.html#" data-cmd="tqq"></a><a class="bds_renren" title="分享到人人网" href="http://blog.chinaunix.net/uid-23069658-id-3273673.html#" data-cmd="renren"></a><a class="bds_weixin" title="分享到微信" href="http://blog.chinaunix.net/uid-23069658-id-3273673.html#" data-cmd="weixin"></a></div>
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
+				<!-- JiaThis Button END -->
+			  </div>
+              阅读(6360) | 评论(0) | 转发(22) |
+			                <div class="HT_line3"></div>
+            </div>
+            <div class="Blog_con3_3">
+              <div><span id="digg_num">6</span><a href="javascript:void(0)" id="digg" bid="3273673" url="/blog/digg.html"></a></div>
+              <p>上一篇：<a href="http://blog.chinaunix.net/uid-23069658-id-3271110.html">Linux环境下网络编程杂谈</a></p>
+              <p>下一篇：<a href="http://blog.chinaunix.net/uid-23069658-id-3276167.html">Linux网络编程：基于UDP的程序开发回顾篇</a></p>
+            </div>
+          </div>
+          <div class="Blog_con3_4">
+            <div class="Blog_tit2 Blog_tit6">相关热门文章</div>
+			            <ul class="Blog_ul7">
+						  <li><span class="Blog_span6"></span><a href="http://blog.chinaunix.net/uid-301743-id-5212672.html" title="Tomcat 8在CentOS 7的守护进程设置" target="blank">Tomcat 8在CentOS 7的守护进程...</a></li>
+						  <li><span class="Blog_span6"></span><a href="http://blog.chinaunix.net/uid-608135-id-5175356.html" title="Git log 命令使用" target="blank">Git log 命令使用</a></li>
+						  <li><span class="Blog_span6"></span><a href="http://blog.chinaunix.net/uid-30362080-id-5130822.html" title=".Linux网络编程一步一步学 - 目录（汇总）zhuan" target="blank">.Linux网络编程一步一步学 - ...</a></li>
+						  <li><span class="Blog_span6"></span><a href="http://blog.chinaunix.net/uid-30249924-id-5129962.html" title="【java入门】【毕向东25天】1day~2day~3day备忘" target="blank">【java入门】【毕向东25天】1d...</a></li>
+						  <li><span class="Blog_span6"></span><a href="http://blog.chinaunix.net/uid-30360526-id-5129828.html" title="钟鑫洁：7.21黄金白银原油晚间操作策略" target="blank">钟鑫洁：7.21黄金白银原油晚间...</a></li>
+			            </ul>
+			            <ul class="Blog_ul7">
+						  <li><span class="Blog_span7"></span><a href="http://blog.chinaunix.net/uid-10900999-id-2920737.html" title="linux 常见服务端口" target="blank">linux 常见服务端口</a></li>
+						  <li><span class="Blog_span7"></span><a href="http://blog.chinaunix.net/uid-21025382-id-168762.html" title="【ROOTFS搭建】busybox的httpd使用CGI脚本(BusyBox httpd CGI scripts)" target="blank">【ROOTFS搭建】busybox的httpd...</a></li>
+						  <li><span class="Blog_span7"></span><a href="http://blog.chinaunix.net/uid-20457694-id-1944680.html" title="xmanager 2.0 for linux配置" target="blank">xmanager 2.0 for linux配置</a></li>
+						  <li><span class="Blog_span7"></span><a href="http://blog.chinaunix.net/uid-20378509-id-1956694.html" title="什么是shell" target="blank">什么是shell</a></li>
+						  <li><span class="Blog_span7"></span><a href="http://blog.chinaunix.net/uid-233938-id-162618.html" title="linux socket的bug??" target="blank">linux socket的bug??</a></li>
+			            </ul>
+            <ul class="Blog_ul7">
+						  <li><span class="Blog_span6"></span><a href="http://ask.chinaunix.net/question/785970" title="linux dhcp  peizhi roc" target="blank">linux dhcp  peizhi roc</a></li>
+						  <li><span class="Blog_span6"></span><a href="http://ask.chinaunix.net/question/785964" title="关于Unix文件的软链接" target="blank">关于Unix文件的软链接</a></li>
+						  <li><span class="Blog_span6"></span><a href="http://ask.chinaunix.net/question/785935" title="求教这个命令什么意思，我是新手，刚刚学习solaris" target="blank">求教这个命令什么意思，我是新...</a></li>
+						  <li><span class="Blog_span6"></span><a href="http://ask.chinaunix.net/question/785919" title="sed -e &quot;/grep/d&quot; 是什么意思？谢谢" target="blank">sed -e "/grep/d" 是什么意思...</a></li>
+						  <li><span class="Blog_span6"></span><a href="http://ask.chinaunix.net/question/785702" title="谁能够帮我解决LINUX  2.6  10版本驱动" target="blank">谁能够帮我解决LINUX  2.6  10...</a></li>
+			            </ul>
+            <div class="clear"></div>
+          </div>
+		  <!--
+          <div class="Blog_con3_4 Blog_con3_5">
+            <div class="Blog_tit2 Blog_tit7">热门推荐</div>
+            <ul>
+			              <li><a href="" title="" target='blank' ></a></li>
+			            </ul>
+          </div>
+		  -->
+        </div>
+      </div>
+      <div class="Blog_right1_7" id="replyList">
+		<div class="Blog_tit3">给主人留下些什么吧！~~</div>
+				<!--暂无内容-->
+				<!-- 评论分页-->
+		<div class="Blog_right1_6 Blog_right1_12">
+        		</div>
+		<!-- 评论分页-->
+        <div class="Blog_right1_10">
+          <div class="Blog_tit3">评论热议</div>
+		  		 <!--未登录 -->
+        <div class="Blog_right1_8">
+          <div class="nologin_con1"> 请登录后评论。
+            <p><a href="http://blog.chinaunix.net/site/login.html" onclick="linkto()">登录</a> <a href="http://sso.chinaunix.net/Register?return_url=http%3A%2F%2Ft.cublog.com%2F">注册</a></p>
+          </div>
+        </div>
+        <br>
+        <div>
+            <div style="float:left;margin-left:70px;margin-right:10px;">
+             <script type="text/javascript">
+            var cpro_id = "u1625692";
+            </script>
+            <script src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/c.js" type="text/javascript"></script><div id="BAIDU_DUP_wrapper_u1625692_0"><iframe id="cproIframe_u1625692_1" width="468" height="60" src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/acom.html" align="center,center" marginwidth="0" marginheight="0" scrolling="no" frameborder="0" allowtransparency="true"></iframe></div><script charset="utf-8" src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/acom"></script>
+            </div>
+            <div style="margin-left:10px;">
+            <script type="text/javascript">
+            var cpro_id = "u1625694";
+            </script>
+            <script src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/c.js" type="text/javascript"></script><div id="BAIDU_DUP_wrapper_u1625694_0"><iframe id="cproIframe_u1625694_2" width="468" height="60" src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/acom(2).html" align="center,center" marginwidth="0" marginheight="0" scrolling="no" frameborder="0" allowtransparency="true"></iframe></div><script charset="utf-8" src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/acom(1)"></script>
+            </div>
+        </div>
+		
+        </div>
+      </div>
+    </div>
+  </div>
+  <input type="hidden" id="report_url" value="/blog/ViewReport.html">
+
+<script type="text/javascript">
+  	//测试字符串的长度 一个汉字算2个字节
+	function mb_strlen(str)
+	{
+		var len=str.length;
+		var totalCount=0;
+		for(var i=0;i<len;i++)
+		{
+			var c = str.charCodeAt(i);
+			if ((c >= 0x0001 && c <= 0x007e) || (0xff60<=c && c<=0xff9f)) {
+				totalCount++;
+			}else{
+				totalCount+=2;
+			}
+		}
+		return totalCount;
+	}
+	/*
+	var Util = {};
+	Util.calWbText = function (text, max){
+		if(max === undefined)
+			max = 500;
+		var cLen=0;
+		var matcher = text.match(/[^\x00-\xff]/g),
+			wlen  = (matcher && matcher.length) || 0;
+		//匹配url链接正则 http://***
+		var pattern = /http:\/\/([\w-]+\.)+[\w-]+(\/*[\w-\.\/\?%&=][^\s^\u4e00-\u9fa5]*)?/gi;
+		//匹配的数据存入数组
+		var arrPt = new Array();
+		var i = 0;
+		while((result = pattern.exec(text)) != null){
+			arrPt[i] = result[0];
+			i++;
+		}
+		//替换掉原文本中的链接
+		for(var j = 0;j<arrPt.length;j++){
+			text = text.replace(arrPt[j],"");
+		}
+		//减掉链接所占的长度
+		return Math.floor((max*2 - text.length - wlen)/2 - 12*i);
+	};
+	*/
+	var allowComment = '0';
+	
+	//举报弹出层
+	function showJuBao(url, cid){
+		
+			$.cover(false);
+			asyncbox.open({
+				id  : 'report_thickbox',
+				url : url,
+				title : '举报违规',
+				width : 378,
+				height : 240,
+				scroll : 'no',
+				data : {
+					'cid'	 : cid,
+					'idtype' : 2 ,
+                                        'blogurl' : window.location.href
+				},
+				callback : function(action){
+					if(action == 'close'){
+						$.cover(false);
+					}
+				}
+			});
+	}
+
+	$(function(){
+
+		//创建管理员删除的弹出层
+		$('#admin_article_del').click(function(){
+			$.cover(false);
+			asyncbox.open({
+				id : 'class_thickbox',
+				html : '<div class="HT_layer3_1"><ul><li class="HT_li1">操作原因：<select class="HT_sel7" id="del_type" name="del_type"><option value="广告文章">广告文章</option><option value="违规内容">违规内容</option><option value="标题不明">标题不明</option><option value="文不对题">文不对题</option></select></li><li class="HT_li1" ><input class="HT_btn4" id="admin_delete"  type="button" /></li></ul></div>',
+				title : '选择类型',
+				width : 300,
+				height : 150,
+				scroll : 'no',
+				callback : function(action){
+					if(action == 'close'){
+						$.cover(false);
+					}
+				}
+			});
+		});
+		$('#admin_delete').live('click' , function(){
+			///blog/logicdel/id/3480184/url/%252Fblog%252Findex.html.html
+			var type = $('#del_type').val();
+			var url = '/blog/logicdel/id/3273673/url/%252Fuid%252F23069658.html.html';
+			window.location.href= url + '?type=' + type;
+		});
+
+
+		//顶  js中暂未添加&过滤 
+		$('#digg').live('click' , function(){
+
+			if(isOnLine == '' )
+			{
+				//showErrorMsg('登录之后才能进行此操作' , '消息提示');
+				showErrorMsg('操作失败,您需要先登录!', '消息提示', '/site/login.html');
+				return false;
+			}
+
+			var bid = $('#digg').attr('bid');
+			var url = $('#digg').attr('url');
+
+			var digg_str = $.cookie('digg_id');
+			if(digg_str != null)
+			{
+				var arr= new Array(); //定义一数组
+
+				arr = digg_str.split(","); //字符分割     
+				for( i=0 ; i < arr.length ; i++ )   
+				{   
+					if(bid == arr[i])
+					{
+						showErrorMsg('已经赞过该文章', '消息提示'); 
+						return false;
+					}
+				} 
+			}
+			$.ajax({
+				type:"POST",
+				url:url,	
+				data: {
+					'bid' : bid 
+				},
+				dataType: 'json',
+				success:function(msg){
+					if(msg.error == 0)
+					{
+						var num = parseInt($('#digg_num').html(),10);
+						num += 1;
+						$('#digg_num').html(num);
+						$('#digg').die();
+
+						if(digg_str == null)
+						{
+							$.cookie('digg_id', bid, {expires: 30 , path: '/'});
+						}
+						else
+						{
+							$.cookie('digg_id', digg_str + ',' + bid, {expires: 30 , path: '/'});
+						}
+						showSucceedMsg('谢谢' , '消息提示');
+					}
+					else if(msg.error == 1)
+					{
+						//showErrorMsg(msg.error_content , '消息提示'); 
+						showErrorMsg('操作失败,您需要先登录!', '消息提示', '/site/login.html');
+					}
+					else if(msg.error == 2)
+					{
+						showErrorMsg(msg.error_content , '消息提示'); 
+					}
+				}
+			});
+		});
+		//举报弹出层
+		/*$('.box_report').live('click' , function(){
+			if(isOnLine == '' )
+			{
+				//showErrorMsg('登录之后才能进行此操作' , '消息提示');
+				showErrorMsg('操作失败,您需要先登录!', '消息提示', '/site/login.html');
+				return false;
+			}
+			var url = $('#report_url').val();
+			var cid = $(this).attr('cid');
+			$.cover(false);
+			asyncbox.open({
+				id  : 'report_thickbox',
+				url : url,
+				title : '举报违规',
+				width : 378,
+				height : 240,
+				scroll : 'no',
+				data : {
+					'cid'	 : cid,
+					'idtype' : 2 
+				},
+				callback : function(action){
+					if(action == 'close'){
+						$.cover(false);
+					}
+				}
+			});
+		});*/
+
+
+		//评论相关代码
+		
+		//点击回复显示评论框
+		$('.Blog_a10').live('click' , function(){
+			if(isOnLine == '' )
+			{
+				//showErrorMsg('登录之后才能进行此操作' , '消息提示');
+				showErrorMsg('操作失败,您需要先登录!', '消息提示', '/site/login.html');
+				return false;
+			}
+
+			if(allowComment == 1)
+			{
+				showErrorMsg('该博文不允许评论' , '消息提示'); 
+				return false;
+			}
+			var tid = $(this).attr('toid');//留言作者id
+			var bid = $(this).attr('bid');//blogid
+			var cid = $(this).attr('cid');//留言id
+			var tname = $(this).attr('tname');
+                         			var tpl  = '<div class="Blog_right1_9">';
+				tpl +=	 '<div class="div2">';
+				tpl +=     '<textarea name="" cols="" rows="" class="Blog_ar1_1" id="rmsg">文明上网，理性发言...</textarea>';
+				tpl +=	 '</div>';
+				tpl +=   '<div class="div3">';
+				tpl +=		'<div class="div3_2"><a href="javascript:void(0);" class="Blog_a11" id="quota_sbumit" url="/Comment/PostComment.html" tid="'+tid+'" bid="'+bid+'" cid="'+cid+'" tname="'+tname+'" ></a><a href="javascript:void(0)" id="qx_comment" class="Blog_a12"></a></div>';
+				tpl +=		'<div class="div3_1"><a href="javascript:void(0);" id="mface"><span></span>表情</a></div>';
+				tpl +=		'<div class="clear"></div>';
+				tpl +=	 '</div>';
+				tpl +=  '</div>';
+                                 			$('.z_move_comment').html('');
+			$(this).parents('.Blog_right1_8').find('.z_move_comment').html(tpl).show();
+		});
+		//引用的评论提交
+		$('#quota_sbumit').live('click' , function(){
+
+			if(isOnLine == '' )
+			{
+				//showErrorMsg('登录之后才能进行此操作' , '消息提示');
+				showErrorMsg('操作失败,您需要先登录!', '消息提示', '/site/login.html');
+				return false;
+			}
+
+			var bid   = $(this).attr('bid');
+			var tid   = $(this).attr('tid');//被引用人的id
+			var qid   = $(this).attr('cid');//引用的id
+			var url = $(this).attr('url');
+			var text = $('#rmsg').val();
+			var tname = $(this).attr('tname');
+			if(text == '' || text=='文明上网，理性发言...')
+			{
+				showErrorMsg('评论内容不能为空！' , '消息提示'); 
+				return false;
+			}
+			else
+			{
+				if(mb_strlen(text) > 1000){
+					showErrorMsg('评论内容不能超过500个汉字' , '消息提示'); 
+					return false;
+				}
+			}
+		    $.ajax({
+		        type: "post",
+			    url: url ,
+			    data: {'bid': bid , 'to' : tid , 'qid' : qid , 'text': text , 'tname' : tname },
+				dataType: 'json',
+			    success: function(data){
+				    if(data.code == 1){
+						var tpl =  '<div class="Blog_right1_8">';
+							tpl+=     '<div class="Blog_right_img1"><a href="' +data.info.url+ '" >' + data.info.header + '</a></div>';
+							tpl+=     '<div class="Blog_right_font1">';
+							tpl+=         '<p class="Blog_p5"><span><a href="' +data.info.url+ '" >' + data.info.username + '</a></span>' + data.info.dateline + '</p>';
+							tpl+=         '<p class="Blog_p7"><a href="' + data.info.quota.url + '">' + data.info.quota.username + '</a>：'+ data.info.quota.content + '</p>';
+							tpl+=         '<p class="Blog_p8">' + data.info.content + '</p><span class="span_text1"><a href="javascript:void(0);" class="Blog_a10" toid=' + data.info.fuid + ' bid=' + data.info.bid + ' cid=' + data.info.cid + '  tname = ' + data.info.username + ' >回复</a> | 　<a class="comment_del_mark" style="cursor:pointer" url="' + data.info.delurl + '" >删除</a>　| 　<a href="javascript:showJuBao(\'/blog/ViewReport.html\','+data.info.cid+')" class="box_report" cid="' + data.info.cid + '" >举报</a></span></div>';
+							tpl+=         '<div class="z_move_comment" style="display:none"></div>';
+							tpl+=	      '<div class="Blog_line1"></div></div>';
+							$('#replyList .Blog_right1_8:first').before(tpl);
+							$('.z_move_comment').html('').hide();
+				    }
+					else if(data.code == -1){
+						//showErrorMsg(data.info , '消息提示'); 
+						showErrorMsg('操作失败,您需要先登录!', '消息提示', '/site/login.html');
+			        }
+                },
+			    error: function(){//请求出错处理
+                        
+                }
+			});
+		});
+		//底部发表评论
+		$('#submitmsg').click(function(){
+			if(allowComment == 1)
+			{
+				showErrorMsg('该博文不允许评论' , '消息提示'); 
+				return false;
+			}
+			var bid   = $(this).attr('bid');
+			var toid  = $(this).attr('toid');
+			var text = $('#reply').val();
+			var url = $(this).attr('url');
+			if(text == '' || text=='文明上网，理性发言...')
+			{
+				showErrorMsg('评论内容不能为空！' , '消息提示'); 
+				return false;
+			}
+			else
+			{
+				if(mb_strlen(text) > 1000){
+					showErrorMsg('评论内容不能超过500个汉字' , '消息提示'); 
+					return false;
+				}
+			}
+		    $.ajax({
+		        type: "post",
+			    url: url ,
+			    data: {'bid': bid , 'to' : toid ,'text': text},
+				dataType: 'json',
+			    success: function(data){
+				    if(data.code == 1)
+					{
+						var tpl   = '<div class="Blog_right1_8">';
+							tpl  +=   '<div class="Blog_right_img1"><a href="' +data.info.url+ '" >' + data.info.header + '</a></div>';
+							tpl  +=	  '<div class="Blog_right_font1">';
+							tpl  +=       '<p class="Blog_p5"><span><a href="' +data.info.url+ '" >' + data.info.username + '</a></span>' + data.info.dateline + '</p>';
+							tpl  +=       '<p class="Blog_p6">' + data.info.content + '</p>';
+							tpl  +=		  '<div class="div1"><a href="javascript:void(0);" class="Blog_a10"  toid=' + data.info.fuid + ' bid=' + data.info.bid + ' cid=' + data.info.cid + '>回复</a> | 　<a class="comment_del_mark" style="cursor:pointer" url="' + data.info.delurl + '">删除</a>　| 　<a href="javascript:showJuBao(\'/blog/ViewReport.html\','+data.info.cid+')" class="box_report" cid="' + data.info.cid + '">举报</a></div>';
+							tpl  +=		  '<div class="z_move_comment" style="display:none"></div>';
+							tpl  +=    '</div><div class="Blog_line1"></div></div>';
+							$('.Blog_tit3:first').after(tpl);
+							$('#reply').val('文明上网，理性发言...');
+					}
+					else if(data.code == -1)
+					{
+						showErrorMsg(data.info , '消息提示'); 
+			        }
+                },
+			    error: function(){//请求出错处理
+                        
+                }
+		    });
+			
+		});
+		//底部评论重置
+		$('#reset_comment').click(function(){
+			$('#reply').val('文明上网，理性发言...');
+		});
+		//取消回复
+		$('#qx_comment').live('click' , function(){
+			$('.z_move_comment').html('').hide();
+		});
+
+
+		$('#rmsg, #reply').live({
+		    focus:function(){
+			    if($(this).val() == '文明上网，理性发言...'){
+			        $(this).val('');
+			    }
+			},
+			blur:function(){
+		        if($(this).val() == ''){
+			        $(this).val('文明上网，理性发言...');
+			    }
+			}
+		});
+		//删除留言确认
+		$('.comment_del_mark').live('click' , function(){
+			var url = $(this).attr('url');
+			asyncbox.confirm('删除留言','确认', function(action){
+				if(action == 'ok')
+				{
+					location.href = url;
+				}
+			});
+		});
+		//删除时间确认
+		$('.del_article_id').click(function(){
+			var delurl = $(this).attr('delurl');
+			asyncbox.confirm('删除文章','确认', function(action){
+				if(action == 'ok')
+				{
+					location.href = delurl;
+				}
+			});
+		});
+		/*
+		//字数限制
+		$('#rmsg, #reply').live('keyup', function(){
+			var id = $(this).attr('id');
+			var left = Util.calWbText($(this).val(), 500);
+			var eid = '#errmsg';
+			
+			if(id == 'reply') eid =  '#rerrmsg';
+			if (left >= 0)
+		        $(eid).html('您还可以输入<span>' + left + '</span>字');
+		    else
+		        $(eid).html('<font color="red">您已超出<span>' + Math.abs(left) + '</span>字 </font>');
+		});
+		*/
+		//加载表情
+	    $('#face').qqFace({id : 'facebox1', assign : 'reply', path : '/image/qqface/'});
+	    $('#mface').qqFace({id : 'facebox', assign : 'rmsg', path:'/image/qqface/'});
+	    
+		/*
+		$('#class_one_id').change(function(){
+			alert(123213);
+			var id = parseInt($(this).val() , 10);
+			if(id == 0) return false;
+			$('.hidden_son_class span').each(function( index , dom ){
+				if( dom.attr('cid')  == id )
+				{
+				}
+			});
+		});
+		*/
+		//转载文章
+		var turn_url = "/blog/viewClassPart.html";
+		$('#repost_bar').click(function(){
+			if(isOnLine == '' )
+			{
+				//showErrorMsg('登录之后才能进行此操作' , '消息提示');
+				showErrorMsg('操作失败,您需要先登录!', '消息提示', '/site/login.html');
+				return false;
+			}
+			var id = $(this).attr('bid');
+			asyncbox.open({
+				id  : 'turn_class_thickbox',
+				url : turn_url,
+				title : '转载文章',
+				width : 330,
+				height : 131,
+				scroll : 'no',
+				data : {
+					'id'	 : id
+				},
+				callback : function(action){
+					if(action == 'close'){
+						$.cover(false);
+					}
+				}
+			});
+		});
+		/*
+	    //转发文章
+	    $('#repost_bar').live('click' , function(){
+			if(isOnLine == '' )
+			{
+				//showErrorMsg('登录之后才能进行此操作' , '消息提示');
+				showErrorMsg('操作失败,您需要先登录!', '消息提示', '/site/login.html');
+				return false;
+			}
+	    	var bid  = $(this).attr('bid');
+	    	var url  = $(this).attr('url');
+	    	asyncbox.confirm('转载文章','确认', function(action){
+	    	  if(action == 'ok'){
+	    	    $.ajax({
+				type:"POST",
+				url:url,	
+				data: {
+					'bid' : bid 
+				},
+				dataType: 'json',
+				success:function(msg){
+				  if(msg.error == 0){
+				    showSucceedMsg('转发成功！', '消息提示');
+				  }else if(msg.error == 1){
+				    //location.href = '/index.php?r=site/login';
+					showErrorMsg('操作失败,您需要先登录!', '消息提示', '/site/login.html');
+				  }else{
+				    showErrorMsg(msg.error_content, '消息提示');
+			      }
+				}
+			  });
+	    	  }
+	    	});
+
+		});
+		*/
+
+	});
+</script>
+<!--该部分应该放在输出代码块的后面才起作用 -->
+<script type="text/javascript">
+
+SyntaxHighlighter.autoloader(
+	'applescript			/highlight/scripts/shBrushAppleScript.js',
+	'actionscript3 as3		/highlight/scripts/shBrushAS3.js',
+	'bash shell				/highlight/scripts/shBrushBash.js',
+	'coldfusion cf			/highlight/scripts/shBrushColdFusion.js',
+	'cpp c					/highlight/scripts/shBrushCpp.js',
+	'c# c-sharp csharp		/highlight/scripts/shBrushCSharp.js',
+	'css					/highlight/scripts/shBrushCss.js',
+	'delphi pascal			/highlight/scripts/shBrushDelphi.js',
+	'diff patch pas			/highlight/scripts/shBrushDiff.js',
+	'erl erlang				/highlight/scripts/shBrushErlang.js',
+	'groovy					/highlight/scripts/shBrushGroovy.js',
+	'java					/highlight/scripts/shBrushJava.js',
+	'jfx javafx				/highlight/scripts/shBrushJavaFX.js',
+	'js jscript javascript	/highlight/scripts/shBrushJScript.js',
+	'perl pl				/highlight/scripts/shBrushPerl.js',
+	'php					/highlight/scripts/shBrushPhp.js',
+	'text plain				/highlight/scripts/shBrushPlain.js',
+	'py python				/highlight/scripts/shBrushPython.js',
+	'ruby rails ror rb		/highlight/scripts/shBrushRuby.js',
+	'scala					/highlight/scripts/shBrushScala.js',
+	'sql					/highlight/scripts/shBrushSql.js',
+	'vb vbnet				/highlight/scripts/shBrushVb.js',
+	'xml xhtml xslt html	/highlight/scripts/shBrushXml.js'
+);
+SyntaxHighlighter.all();
+
+
+function code_hide(id){
+	var code = document.getElementById(id).style.display;
+	if(code == 'none'){
+		document.getElementById(id).style.display = 'block';
+	}else{
+		document.getElementById(id).style.display = 'none';
+	}
+}
+</script>
+<!--回顶部js2011.12.30-->
+<script language="javascript">
+ lastScrollY=0;
+ function heartBeat(){
+ var diffY;
+ if (document.documentElement && document.documentElement.scrollTop)
+     diffY = document.documentElement.scrollTop;
+ else if (document.body)
+     diffY = document.body.scrollTop
+ else
+     {/*Netscape stuff*/}
+ percent=.1*(diffY-lastScrollY);
+ if(percent>0)percent=Math.ceil(percent);
+ else percent=Math.floor(percent);
+ document.getElementById("full").style.top=parseInt(document.getElementById("full").style.top)+percent+"px";
+ lastScrollY=lastScrollY+percent;
+ if(lastScrollY<200)
+ {
+ document.getElementById("full").style.display="none";
+ }
+ else
+ {
+ document.getElementById("full").style.display="block";
+ }
+ }
+ var gkuan=document.body.clientWidth;
+ var ks=(gkuan-960)/2-30;
+ suspendcode="<div id=\"full\" style='right:4px;POSITION:absolute;TOP:500px;z-index:100;width:20px; height:50px;cursor:pointer;'><a href=\"javascript:void(0)\" onclick=\"window.scrollTo(0,0);\"><img src=\"\/image\/top.png\" /></a></div>"
+ document.write(suspendcode);
+ window.setInterval("heartBeat()",1);
+ </script><div id="full" style="right: 4px; position: absolute; top: 5694px; z-index: 100; width: 20px; height: 50px; cursor: pointer; display: block;"><a href="javascript:void(0)" onclick="window.scrollTo(0,0);"><img src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/top.png"></a></div>  <!-- footer -->
+  <div class="Blog_footer" style="clear:both">
+    <div><a href="http://www.chinaunix.net/about/index.shtml" target="_blank" rel="nofollow">关于我们</a> | <a href="http://www.it168.com/bottomfile/it168.shtml" target="_blank" rel="nofollow">关于IT168</a> | <a href="http://www.chinaunix.net/about/connect.html" target="_blank" rel="nofollow">联系方式</a> | <a href="http://www.chinaunix.net/about/service.html" target="_blank" rel="nofollow">广告合作</a> | <a href="http://www.it168.com//bottomfile/flgw/fl.htm" target="_blank" rel="nofollow">法律声明</a> | <a href="http://sso.chinaunix.net/Register?return_url=http%3A%2F%2Fblog.chinaunix.net%2F" target="_blank" rel="nofollow">免费注册</a>
+      <p>Copyright  2001-2010 ChinaUnix.net All Rights Reserved 北京皓辰网域网络信息技术有限公司. 版权所有 </p>
+      <div>感谢所有关心和支持过ChinaUnix的朋友们
+        <p>京ICP证041476号 京ICP证060528号</p>
+      </div>
+    </div>
+  </div>
+</div>
+<script language="javascript">
+
+//全局错误提示弹出框
+function showErrorMsg(content, title, url){
+	var url = url || '';
+	var title = title || '消息提示';
+	var html = '';
+	html += '<div class="HT_layer3_1 HT_layer3_2"><ul><li><p><span class="login_span1"></span>' + content + '</p></li>';
+	if(url == '' || url.length == 0){
+		html += '<li class="HT_li1"><input type="button" class="HT_btn2"  onclick=\'close_windows("error_msg")\'></li>';	
+	} else {
+		html += '<li class="HT_li1"><input type="button" class="login_btn1" onclick="location.href=\'' + url + '\'"></li>';
+	}
+	html += '</ul></div>';
+	$.cover(true);
+	   asyncbox.open({
+		 id: 'error_msg',
+		 title : title,
+		 html : html,
+		 'callback' : function(action){
+			 if(action == 'close'){
+				 $.cover(false);
+			 }
+		 }
+	});
+}
+
+//全局正确提示
+function showSucceedMsg(content, title , url ){
+	var url = url || '';
+	var title = title || '消息提示';
+	var html = '';
+	html += '<div class="HT_layer3_1 HT_layer3_2"><ul><li><p><span class="login_span2"></span>' + content + '</p></li>';
+	if(url == '' || url.length == 0){
+		html += '<li class="HT_li1"><input type="button" class="HT_btn2"  onclick=\'close_windows("error_msg")\'></li>';	
+	} else {
+		html += '<li class="HT_li1"><input type="button" class="HT_btn2" onclick="location.href=\'' + url + '\'"></li>';
+	}
+	html += '</ul></div>';
+	$.cover(true);
+	asyncbox.open({
+		 id: 'error_msg',
+		 title : title,
+		 html : html,
+		 'callback' : function(action){
+			 if(action == 'close'){
+				 $.cover(false);
+			 }
+		 }
+	});
+}
+
+//关闭指定id的窗口
+function close_windows(id){
+	$.cover(false);
+	$.close(id);
+}
+
+
+//公告
+var tID;
+var tn;                        // 高度
+var nStopTime = 5000;        // 不同行间滚动时间隔的时间，值越小，移动越快
+var nSpeed = 50;            // 滚动时，向上移动一像素间隔的时间，值越小，移动越快
+var isMove = true;
+var nHeight = 25;
+var nS = 0;
+var nNewsCount = 3;
+
+/**
+ * n 用于表示是否为第一次运行
+ **/
+function moveT(n)
+{
+    clearTimeout(tID)
+    var noticev2 = document.getElementById("noticev2")
+    nS = nSpeed;
+    
+    // 只在第一次调用时运行，初始化环境（有没有参数）
+    if (n)
+    {
+        // 设置行高
+        noticev2.style.lineHeight = nHeight + "px";
+        // 初始化显示位置
+        tn = 0;
+        // 刚进入时在第一行停止时间
+        nS = nStopTime;
+    }
+    
+    // 判断鼠标是否指向层
+    if (isMove)
+    {
+        // 向上移动一像素
+        tn--;
+        // 如果移动到最下面一行了，则移到顶行
+        if (Math.abs(tn) == nNewsCount * nHeight)
+        {
+            tn = 0;
+        }
+        // 设置位置
+        noticev2.style.marginTop = tn + "px";
+        // 完整显示一行时，停止一段时间
+        if (tn % nHeight == 0)
+        {
+            nS = nStopTime;
+        }
+    }
+
+    tID = setTimeout("moveT()", nS);
+}
+moveT(1);    // 此处可以传入任何参数
+</script>
+<script language="javascript" src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/pv.js"></script>
+<script>
+function sendPV(){
+    var pvTrack = new PvTrack();
+    pvTrack.type = 35; // 频道类别ID
+    pvTrack.channel = 189; // 频道ID
+    pvTrack.pageType = 0;
+    pvTrack.track();
+}
+window.setTimeout("sendPV()", 1000);
+</script>
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-20237423-2']);
+  _gaq.push(['_setDomainName', '.chinaunix.net']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F0ee5e8cdc4d43389b3d1bfd76e83216b' type='text/javascript'%3E%3C/script%3E"));
+
+function linkto(){
+    setCookie("returnUrl", location.href, 1446351105, "/");
+}
+function linktoOut(){
+    setCookie("returnOutUrl", location.href, 1446351105, "/");
+}
+//JS写COOKIE
+function setCookie(name, value, expires, path, domain){
+	if(!arguments[2]) expires = 3600 * 24;
+	if(!arguments[3]) path = "";
+	if(!arguments[4]) domain = "";
+	var str=name+"="+escape(value);
+	if(expires!=""){
+		var date=new Date();
+		date.setTime(date.getTime()+expires*1000);
+		str+=";expires="+date.toGMTString();
+	}
+	if(path!=""){
+		str+=";path="+path;//指定可访问cookie的目录
+	}
+	if(domain!=""){
+		str+=";domain="+domain;//指定可访问cookie的域
+	}
+	document.cookie = str;
+}
+
+</script><script src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/h.js" type="text/javascript"></script>
+<script type="text/javascript" src="./Linux网络编程：基于TCP的程序开发回顾篇-wjlkoorey258-ChinaUnix博客_files/jquery.qqFace.js"></script>
+
+
+<div id="asyncbox_cover" unselectable="on" style="opacity:0.1;filter:alpha(opacity=10);background:#000"></div><div id="asyncbox_clone"></div><div id="asyncbox_focus"></div><div id="asyncbox_load"><div><span></span></div></div></body></html>

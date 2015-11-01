@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<!-- saved from url=(0182)http://iad.g.163.com/wa/a?affiliate=blog&cat=homepage&location=10&site=netease&type=logo300x250&url=http%3A%2F%2Fblog.163.com%2F023_dns%2Fblog%2Fstatic%2F1187273662012125112426472%2F -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<link rel="shortcut icon" href="http://www.163.com/favicon.ico" type="image/x-icon">
+<title>网易个性化广告投放系统</title>
+<script type="text/javascript" src="jquery-1.4.2(1).js"></script>
+<script type="text/javascript">
+    function sendHover(uuid, flight_id, ad_id) {
+        $.ajax({
+            type: 'GET',
+            url: 'http://iad.g.163.com/wa/s',
+            data: {
+                'uuid': uuid,
+                'flight_id': flight_id,
+                'ad_id': ad_id
+            },
+            dataType: 'json',
+            success: function(info) {
+            }
+        });
+    }
+    
+    function sendClick(uuid, flight_id, ad_id) {
+        $.ajax({
+            type: 'GET',
+            url: 'http://iad.g.163.com/wa/c',
+            data: {
+                'uuid': uuid,
+                'flight_id': flight_id,
+                'ad_id': ad_id
+            },
+            dataType: 'json',
+            success: function(info) {
+            }
+        });
+    }
+    
+    var count = 0;
+    $(document).ready(function() {
+        $('body').click(function() {
+            var uuid = $('body').attr('data-uuid');
+            var flight_id = $('body').attr('data-flight_id');
+            var ad_id = $('body').attr('data-ad_id');
+            sendClick(uuid, flight_id, ad_id);
+        });
+        
+        $('body').hover(function() {
+            if(count == 0) {
+                var uuid = $('body').attr('data-uuid');
+                var flight_id = $('body').attr('data-flight_id');
+                var ad_id = $('body').attr('data-ad_id');
+                sendHover(uuid, flight_id, ad_id);
+            }
+            count++;
+        });
+    });
+</script>
+</head>
+<body class="adrec" marginwidth="0" marginheight="0" data-uuid="a6fb2558-002e-44b2-9dca-7be4dd217f4a" data-flight_id="2469" data-ad_id="210275">
+<a target="_blank" href="http://g.163.com/c?AID=210275&FlightID=2469&Values=2543540452&Redirect=http://rd.da.netease.com/redirect?t=raXsYO&p=hoklPb&proId=1024&target=http%3A%2F%2Fwww.kaola.com%2Factivity%2Fdetail%2F4613.html%3Ftag%3D8e08d0cbe8ad089ab65a7602a2afb4a4%23zid_3011604694"><img src="300X250美食.jpg" border="0" height="250" width="300" alt=""></a>
+
+
+</body></html>

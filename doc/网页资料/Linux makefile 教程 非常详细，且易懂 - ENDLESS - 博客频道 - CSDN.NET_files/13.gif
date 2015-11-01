@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="gbk" />
+<title>ITPUB论坛-错误提示页面</title>
+<meta name="description" content="ITPUB,中国最专业的IT技术社区_每天百余篇IT技术资讯,5万活跃技术爱好者,13万热帖话题讨论,主要为高端IT专业技术人员提供媒体信息传播和服务平台-IT168旗下网站"/>
+<link href="static/css/404.css" rel="stylesheet" />
+<link href="http://tech.it168.com/2011/include/style.css?ssd=201gh7s" rel="stylesheet" />
+</head>
+<body>
+<div class="box">
+  <div class="nav_1 mt8">
+    <div style="float:right; margin-right:20px; display:inline;_padding-top:6px;">
+      <div class="glo" id="LoginFalse" style="display: block;"><a rel="nofollow" href="http://www.itpub.net/member.php?mod=logging&action=login&logsubmit=yes">登录</a> | <a rel="nofollow" href="http://sso.itpub.net/Register?return_url=http%3A%2F%2Fwww.itpub.net%2F">注册</a> </div>
+    </div>
+    <script language="javascript">
+  function getElement(aID)
+	 {
+		return (document.getElementById) ? document.getElementById(aID)
+									   : document.all[aID];
+	 }
+   if (typeof(sso_username)=="undefined")
+	  {		  
+		 getElement("LoginTrue").style.display="none";
+		 getElement("LoginFalse").style.display="block";
+	  }
+   else
+	 {
+		  getElement("LoginFalse").style.display="none";
+		  getElement("LoginTrue").style.display="block";		  
+	  }
+</script>
+    <a href="http://www.itpub.net/">ITPUB首页</a> | <a href="http://www.itpub.net/forum.php">论坛</a> | <a href="http://space.itpub.net/">博客</a> | <a href="http://tech.it168.com/chanel-4-pos-226-page-1.shtml">专题</a> | <a href="http://job.itpub.net/">人才</a> | <a href="http://tech.it168.com/book.shtml">图书</a> | <a href="http://selftest.chinaunix.net/">自测</a> | <a href="http://wenku.it168.com/">技术文库</a> | <a href="http://solution.it168.com/">方案库</a> | <a href="http://edm.it168.com/">订阅</a> | <a href="http://tech.it168.com/focus/201002/yuegao1/index.html">投稿</a> | <a href="http://tech.it168.com/chanel-4-tagid-30464-page-1.shtml">精华文章</a> | <a href="http://www.itpub.net/pubtree/index.htm">知识索引树</a></div>
+  <div class="logo_contian1 mt8"> <a style="cursor:pointer;" href="http://www.itpub.net/">
+    <div class="logo_con1">ITPUB</div>
+    </a>
+    <div class="logo_con2">
+      <ul>
+        <li class="li_tit1">数据库</li>
+        <li class="li_logo1"><a href="http://tech.it168.com/oracle/index.shtml">Oracle</a> <a href="http://tech.it168.com/sqlserver/index.shtml">SQL Server</a><br>
+          <a href="http://tech.it168.com/db2/index.shtml">DB2</a> <a href="http://tech.it168.com/mysql/index.shtml">MySQL</a> <a href="http://tech.it168.com/chanel-4-tagid-29731-page-1.shtml">NoSQL</a></li>
+      </ul>
+      <ul class="logo_ul1">
+        <li class="li_tit1"><a style="color:#FFFFFF;" href="http://cio.it168.com/">信息化</a></li>
+        <li class="li_logo1"><a href="http://tech.it168.com/erp/index.shtml">ERP</a> <a href="http://tech.it168.com/bi/index.shtml">BI</a> <a href="http://cio.it168.com/crm/index.shtml">CRM</a> <a href="http://cio.it168.com/oa/index.shtml">OA</a> <a href="http://tech.it168.com/soa.shtml">SOA</a> <a href="http://cio.it168.com/saas/index.shtml">SAAS</a> <a href="http://tech.it168.com/management/index.shtml">管理</a> <a href="http://cio.it168.com/manufacture/index.shtml">制造</a> <a href="http://cio.it168.com/logistics/index.shtml">物流</a></li>
+      </ul>
+      <ul class="logo_ul2">
+        <li class="li_tit2">开发</li>
+        <li class="li_logo2"><a href="http://tech.it168.com/dotnet/index.shtml">.NET</a> <a href="http://tech.it168.com/java/index.shtml">Java</a> <a href="http://tech.it168.com/chanel-4-tagid-28463-page-1.shtml">web开发</a> <a href="http://tech.it168.com/opensource/index.shtml">开源</a> <a href="http://tech.it168.com/mobile/index.shtml">移动</a> <a href="http://cloud.it168.com/">云计算</a></li>
+        <div class="clear"></div>
+      </ul>
+      <ul class="logo_ul3">
+        <li class="li_tit2">专区</li>
+        <li class="li_logo2"><a href="http://tech.it168.com/en-ms/index.shtml">微软</a> <a href="http://ibm-iste.itpub.net/">IBM</a><br>
+          <a href="http://cuda.it168.com/">CUDA</a> <a href="http://c9.it168.com/">Channel9</a></li>
+      </ul>
+    </div>
+    <div class="clear"></div>
+  </div>
+  <div class="forum_nav_1 mt8">
+    <div class="forum_nav_1_1">精华论坛</div>
+    <div class="forum_nav_1_2">
+      <ul>
+        <li><a href="http://www.itpub.net/forum.php?gid=1"><span>数据库：</span></a><a href="http://www.itpub.net/forum-2-1.html">Oracle管理</a> <a href="http://www.itpub.net/forum-3-1.html">Oracle开发</a> <a href="http://www.itpub.net/forum-39-1.html">DB2</a> <a href="http://www.itpub.net/forum-40-1.html">SQL Server</a> <a href="http://www.itpub.net/forum-73-1.html">MySQL</a> <a href="http://www.itpub.net/forum-234-1.html">NoSQL</a> <a href="http://www.itpub.net/forum-43-1.html">数据仓库</a></li>
+        <li><a href="http://www.itpub.net/forum.php?gid=71"><span>信息化：</span></a><a href="http://www.itpub.net/forum-5-1.html">ERP产品与实践</a> <a href="http://www.itpub.net/forum-45-1.html">SAP</a> <a href="http://www.itpub.net/forum-46-1.html">Oracle ERP</a> <a href="http://www.itpub.net/forum-109-1.html">国内ERP</a> <a href="http://www.itpub.net/forum-56-1.html">ERP二次开发</a> <a href="http://www.itpub.net/forum-65-1.html">供应链</a></li>
+      </ul>
+      <div class="line_1"></div>
+      <ul>
+        <li><a href="http://www.itpub.net/forum.php?gid=33"><span>开发技术：</span></a><a href="http://www.itpub.net/forum-32-1.html">JAVA</a> <a href="http://www.itpub.net/forum-76-1.html">WEB开发</a> <a href="http://www.itpub.net/forum-108-1.html">.net</a> <a href="http://www.itpub.net/forum-44-1.html">项目管理</a> <a href="http://www.itpub.net/forum-16-1.html">系统设计</a> <a href="http://cudabbs.it168.com/">CUDA</a> <a href="http://www.mobpub.net/index.php">Mobpub</a></li>
+        <li><a href="http://www.itpub.net/forum.php?gid=50"><span>行业交流：</span></a><a href="http://www.itpub.net/forum-112-1.html">IT业界评论与展望</a> <a href="http://www.itpub.net/forum-68-1.html">金融</a> <a href="http://www.itpub.net/forum-85-1.html">医卫</a> <a href="http://www.itpub.net/forum-87-1.html">制造</a> <a href="http://www.itpub.net/forum-66-1.html">电信</a> <a href="http://www.itpub.net/forum-86-1.html">政府与教育</a> <a href="http://www.itpub.net/forum-146-1.html">IT职业生涯</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="itpub_404">
+    <div class="itpub_404_l"><img src="static/image/common/ITPUB_404_03.jpg" width="252" height="185" alt="itpub404"></div>
+    <div class="itpub_404_r">
+      <p class="text1">哎呀！你访问的页面不存在</p>
+      <p>可能网页地址输入错了，请再核对下吧^-^</p>
+      <p class="text2"><a href="http://www.itpub.net/forum.php" target="_blank">请点击返回ITPUB论坛首页</a><br>
+        <a href="http://space.itpub.net/" target="_blank">请点击返回ITPUB博客首页</a></p>
+    </div>
+  </div>
+  <div class="foot">
+    <p><a target="_blank" href="http://www.itpub.net/contactus.php">联系我们</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a target="_blank" href="http://www.itpub.net/footer_wzls.php">网站律师</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a target="_blank" href="http://www.itpub.net/footer_ys.php">隐私政策</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a target="_blank" href="http://www.itpub.net/footer_zscq.php">知识产权声明</a></p>
+    北京皓辰网域网络信息技术有限公司. 版权所有 京ICP证:060528号<br/>
+    北京市公安局海淀分局网监中心备案编号：1101082001 </div>
+</div>
+</body>
+</html>
